@@ -1,13 +1,11 @@
 package com.hotel.reservas.repository;
 
-import com.hotel.reservas.entity.Huesped;
+import com.hotel.reservas.model.Huesped;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface HuespedRepository
-        extends JpaRepository<Huesped, Integer> {
+import java.util.Optional;
 
-    boolean existsByTipoDocumentoAndNumeroDocumento(
-        String tipoDocumento,
-        String numeroDocumento
-    );
+public interface HuespedRepository extends JpaRepository<Huesped, Long> {
+
+    Optional<Huesped> findByDocumento(String documento);
 }
