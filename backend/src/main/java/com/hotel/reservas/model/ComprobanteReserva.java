@@ -5,11 +5,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/** Mapea la tabla Comprobante. */
 @Entity
-@Table(name = "comprobante_reserva")
+@Table(name = "Comprobante")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,18 +17,16 @@ public class ComprobanteReserva {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "idComprobante")
+    private Integer id;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "reserva_id", nullable = false, unique = true)
+    @JoinColumn(name = "idReserva", nullable = false, unique = true)
     private Reserva reserva;
 
-    @Column(nullable = false, length = 30, unique = true)
-    private String numero;
+    @Column(name = "fechaGeneracion", nullable = false)
+    private LocalDateTime fechaGeneracion = LocalDateTime.now();
 
-    @Column(name = "fecha_emision", nullable = false)
-    private LocalDateTime fechaEmision = LocalDateTime.now();
-
-    @Column(nullable = false, precision = 12, scale = 2)
-    private BigDecimal total;
+    @Column(name = "numeroComprobante", nullable = false, length = 30, unique = true)
+    private String numeroComprobante;
 }

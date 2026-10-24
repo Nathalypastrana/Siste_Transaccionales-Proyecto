@@ -6,15 +6,17 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
-import java.util.Optional;
+import java.util.List;
 
-public interface TarifaRepository extends JpaRepository<Tarifa, Long> {
+public interface TarifaRepository extends JpaRepository<Tarifa, Integer> {
 
+    /** Tarifas activas del tipo de habitación que cubren la fecha, la más reciente primero. */
     @Query("""
             select t from Tarifa t
             where t.tipoHabitacion.id = :tipoId
+              and t.activa = true
               and :fecha between t.fechaInicio and t.fechaFin
             order by t.fechaInicio desc
             """)
-    Optional<Tarifa> findVigente(@Param("tipoId") Long tipoId, @Param("fecha") LocalDate fecha);
+    List<Tarifa> findVigentes(@Param("tipoId") Integer tipoId, @Param("fecha") LocalDate fecha);
 }

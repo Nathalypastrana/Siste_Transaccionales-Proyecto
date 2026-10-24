@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "tarifa")
+@Table(name = "Tarifa")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,18 +17,22 @@ public class Tarifa {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "idTarifa")
+    private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "tipo_habitacion_id", nullable = false)
-    private TipoHabitacion tipoHabitacion;
+    @Column(name = "valor", nullable = false, precision = 12, scale = 2)
+    private BigDecimal valor;
 
-    @Column(name = "precio_noche", nullable = false, precision = 12, scale = 2)
-    private BigDecimal precioNoche;
-
-    @Column(name = "fecha_inicio", nullable = false)
+    @Column(name = "fechaInicio", nullable = false)
     private LocalDate fechaInicio;
 
-    @Column(name = "fecha_fin", nullable = false)
+    @Column(name = "fechaFin", nullable = false)
     private LocalDate fechaFin;
+
+    @Column(name = "activa", nullable = false)
+    private Boolean activa = true;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "idTipoHabitacion", nullable = false)
+    private TipoHabitacion tipoHabitacion;
 }

@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "reserva")
+@Table(name = "Reserva")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,34 +18,38 @@ public class Reserva {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "idReserva")
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "huesped_id", nullable = false)
+    @JoinColumn(name = "idHuesped", nullable = false)
     private Huesped huesped;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "habitacion_id", nullable = false)
+    @JoinColumn(name = "idHabitacion", nullable = false)
     private Habitacion habitacion;
 
-    /** Usuario del sistema que registró la reserva (se llenará cuando exista autenticación). */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "idUsuario", nullable = false)
     private Usuario usuario;
 
-    @Column(name = "fecha_entrada", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "idTarifa", nullable = false)
+    private Tarifa tarifa;
+
+    @Column(name = "fechaEntrada", nullable = false)
     private LocalDate fechaEntrada;
 
-    @Column(name = "fecha_salida", nullable = false)
+    @Column(name = "fechaSalida", nullable = false)
     private LocalDate fechaSalida;
 
+    @Column(name = "fechaReserva", nullable = false)
+    private LocalDateTime fechaReserva = LocalDateTime.now();
+
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private EstadoReserva estado = EstadoReserva.CONFIRMADA;
+    @Column(name = "estado", nullable = false, length = 20)
+    private EstadoReserva estado = EstadoReserva.PENDIENTE;
 
-    @Column(nullable = false, precision = 12, scale = 2)
-    private BigDecimal total;
-
-    @Column(name = "fecha_creacion", nullable = false)
-    private LocalDateTime fechaCreacion = LocalDateTime.now();
+    @Column(name = "valorTotal", nullable = false, precision = 12, scale = 2)
+    private BigDecimal valorTotal;
 }

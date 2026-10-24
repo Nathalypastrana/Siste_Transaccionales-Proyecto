@@ -6,7 +6,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "huesped")
+@Table(name = "Huesped",
+        uniqueConstraints = @UniqueConstraint(name = "UQ_Huesped_Documento",
+                columnNames = {"tipoDocumento", "numeroDocumento"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -14,20 +16,24 @@ public class Huesped {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "idHuesped")
+    private Integer id;
 
-    @Column(nullable = false, length = 80)
-    private String nombre;
+    @Column(name = "tipoDocumento", nullable = false, length = 20)
+    private String tipoDocumento;
 
-    @Column(nullable = false, length = 80)
-    private String apellido;
+    @Column(name = "numeroDocumento", nullable = false, length = 30)
+    private String numeroDocumento;
 
-    @Column(nullable = false, length = 30, unique = true)
-    private String documento;
+    @Column(name = "nombres", nullable = false, length = 100)
+    private String nombres;
 
-    @Column(length = 120)
-    private String email;
+    @Column(name = "apellidos", nullable = false, length = 100)
+    private String apellidos;
 
-    @Column(length = 30)
+    @Column(name = "telefono", length = 20)
     private String telefono;
+
+    @Column(name = "correo", length = 100)
+    private String correo;
 }

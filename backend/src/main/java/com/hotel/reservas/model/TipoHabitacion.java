@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "tipo_habitacion")
+@Table(name = "TipoHabitacion")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -14,14 +14,15 @@ public class TipoHabitacion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "idTipoHabitacion")
+    private Integer id;
 
-    @Column(nullable = false, length = 50, unique = true)
+    @Column(name = "nombre", nullable = false, length = 50, unique = true)
     private String nombre;
 
-    @Column(length = 255)
+    @Column(name = "descripcion", length = 255)
     private String descripcion;
 
-    @Column(nullable = false)
+    @Column(name = "capacidad", nullable = false)
     private Integer capacidad;
 }

@@ -7,13 +7,13 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record ReservaResponse(
-        Long id,
-        Long huespedId,
-        Long habitacionId,
+        Integer id,
+        Integer huespedId,
+        Integer habitacionId,
         LocalDate fechaEntrada,
         LocalDate fechaSalida,
         EstadoReserva estado,
-        BigDecimal total
+        BigDecimal valorTotal
 ) {
     public static ReservaResponse de(Reserva r) {
         return new ReservaResponse(
@@ -23,6 +23,6 @@ public record ReservaResponse(
                 r.getFechaEntrada(),
                 r.getFechaSalida(),
                 r.getEstado(),
-                r.getTotal());
+                r.getValorTotal());
     }
 }

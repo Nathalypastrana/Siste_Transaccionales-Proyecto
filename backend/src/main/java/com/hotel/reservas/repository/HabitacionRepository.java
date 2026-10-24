@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface HabitacionRepository extends JpaRepository<Habitacion, Long> {
+public interface HabitacionRepository extends JpaRepository<Habitacion, Integer> {
 
     /**
      * Bloquea la fila de la habitación hasta que termine la transacción.
@@ -18,5 +18,5 @@ public interface HabitacionRepository extends JpaRepository<Habitacion, Long> {
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select h from Habitacion h where h.id = :id")
-    Optional<Habitacion> findByIdForUpdate(@Param("id") Long id);
+    Optional<Habitacion> findByIdForUpdate(@Param("id") Integer id);
 }

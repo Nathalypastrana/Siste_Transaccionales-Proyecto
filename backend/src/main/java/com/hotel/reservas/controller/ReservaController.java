@@ -22,12 +22,12 @@ public class ReservaController {
     }
 
     @GetMapping("/{id}")
-    public ReservaResponse obtener(@PathVariable Long id) {
+    public ReservaResponse obtener(@PathVariable Integer id) {
         return reservaService.obtener(id);
     }
 
     @PatchMapping("/{id}/cancelar")
-    public ReservaResponse cancelar(@PathVariable Long id) {
+    public ReservaResponse cancelar(@PathVariable Integer id) {
         return reservaService.cancelar(id);
     }
 }

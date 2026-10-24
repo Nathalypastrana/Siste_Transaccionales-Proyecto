@@ -7,23 +7,24 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.Collection;
 
-public interface ReservaRepository extends JpaRepository<Reserva, Long> {
+public interface ReservaRepository extends JpaRepository<Reserva, Integer> {
 
     /**
-     * Cuenta reservas activas de una habitación que se cruzan con el rango pedido.
+     * Cuenta reservas activas (PENDIENTE o CONFIRMADA) de una habitación que se cruzan con el rango.
      * Dos rangos se cruzan cuando entrada1 < salida2 y salida1 > entrada2
      * (la fecha de salida no cuenta como noche ocupada).
      */
     @Query("""
             select count(r) from Reserva r
             where r.habitacion.id = :habitacionId
-              and r.estado = :estado
+              and r.estado in :estados
               and r.fechaEntrada < :salida
               and r.fechaSalida > :entrada
             """)
-    long contarCruces(@Param("habitacionId") Long habitacionId,
+    long contarCruces(@Param("habitacionId") Integer habitacionId,
                       @Param("entrada") LocalDate entrada,
                       @Param("salida") LocalDate salida,
-                      @Param("estado") EstadoReserva estado);
+                      @Param("estados") Collection<EstadoReserva> estados);
 }

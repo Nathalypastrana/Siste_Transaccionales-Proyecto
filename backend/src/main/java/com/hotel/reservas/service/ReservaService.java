@@ -13,15 +13,22 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class ReservaService {
 
+    private static final Set<EstadoReserva> ESTADOS_ACTIVOS =
+            EnumSet.of(EstadoReserva.PENDIENTE, EstadoReserva.CONFIRMADA);
+
     private final ReservaRepository reservaRepository;
     private final HabitacionRepository habitacionRepository;
     private final HuespedRepository huespedRepository;
+    private final UsuarioRepository usuarioRepository;
     private final TarifaRepository tarifaRepository;
     private final ComprobanteReservaRepository comprobanteRepository;
 
@@ -40,49 +47,56 @@ public class ReservaService {
         Habitacion habitacion = habitacionRepository.findByIdForUpdate(req.habitacionId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Habitación no encontrada."));
 
-        if (habitacion.getEstado() != EstadoHabitacion.DISPONIBLE) {
-            throw new ConflictoReservaException("La habitación no está disponible para reservar.");
+        if (habitacion.getEstado() == EstadoHabitacion.MANTENIMIENTO) {
+            throw new ConflictoReservaException("La habitación está en mantenimiento.");
         }
 
         Huesped huesped = huespedRepository.findById(req.huespedId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Huésped no encontrado."));
+        Usuario usuario = usuarioRepository.findById(req.usuarioId())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado."));
 
         long cruces = reservaRepository.contarCruces(
-                habitacion.getId(), req.fechaEntrada(), req.fechaSalida(), EstadoReserva.CONFIRMADA);
+                habitacion.getId(), req.fechaEntrada(), req.fechaSalida(), ESTADOS_ACTIVOS);
         if (cruces > 0) {
             throw new ConflictoReservaException("La habitación ya está reservada en esas fechas.");
         }
 
-        Tarifa tarifa = tarifaRepository
-                .findVigente(habitacion.getTipoHabitacion().getId(), req.fechaEntrada())
-                .orElseThrow(() -> new RecursoNoEncontradoException("No hay tarifa vigente para esa fecha."));
+        List<Tarifa> tarifas = tarifaRepository
+                .findVigentes(habitacion.getTipoHabitacion().getId(), req.fechaEntrada());
+        if (tarifas.isEmpty()) {
+            throw new RecursoNoEncontradoException("No hay tarifa vigente para esa fecha.");
+        }
+        Tarifa tarifa = tarifas.get(0);
 
         long noches = ChronoUnit.DAYS.between(req.fechaEntrada(), req.fechaSalida());
-        BigDecimal total = tarifa.getPrecioNoche().multiply(BigDecimal.valueOf(noches));
+        BigDecimal total = tarifa.getValor().multiply(BigDecimal.valueOf(noches));
 
         Reserva reserva = new Reserva();
         reserva.setHuesped(huesped);
         reserva.setHabitacion(habitacion);
+        reserva.setUsuario(usuario);
+        reserva.setTarifa(tarifa);
         reserva.setFechaEntrada(req.fechaEntrada());
         reserva.setFechaSalida(req.fechaSalida());
-        reserva.setTotal(total);
+        reserva.setEstado(EstadoReserva.CONFIRMADA);
+        reserva.setValorTotal(total);
         reserva = reservaRepository.save(reserva);
 
         ComprobanteReserva comprobante = new ComprobanteReserva();
         comprobante.setReserva(reserva);
-        comprobante.setNumero("CR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
-        comprobante.setTotal(total);
+        comprobante.setNumeroComprobante("CR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         comprobanteRepository.save(comprobante);
 
         return ReservaResponse.de(reserva);
     }
 
     @Transactional
-    public ReservaResponse cancelar(Long id) {
+    public ReservaResponse cancelar(Integer id) {
         Reserva reserva = reservaRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Reserva no encontrada."));
-        if (reserva.getEstado() != EstadoReserva.CONFIRMADA) {
-            throw new ConflictoReservaException("Solo se pueden cancelar reservas confirmadas.");
+        if (!ESTADOS_ACTIVOS.contains(reserva.getEstado())) {
+            throw new ConflictoReservaException("Solo se pueden cancelar reservas pendientes o confirmadas.");
         }
         if (!reserva.getFechaEntrada().isAfter(LocalDate.now())) {
             throw new ConflictoReservaException("No se puede cancelar una reserva que ya inició.");
@@ -92,7 +106,7 @@ public class ReservaService {
     }
 
     @Transactional(readOnly = true)
-    public ReservaResponse obtener(Long id) {
+    public ReservaResponse obtener(Integer id) {
         return reservaRepository.findById(id)
                 .map(ReservaResponse::de)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Reserva no encontrada."));
