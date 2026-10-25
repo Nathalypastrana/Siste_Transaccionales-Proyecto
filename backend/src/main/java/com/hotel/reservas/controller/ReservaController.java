@@ -8,12 +8,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/reservas")
 @RequiredArgsConstructor
 public class ReservaController {
 
     private final ReservaService reservaService;
+
+    @GetMapping
+    public List<ReservaResponse> listar() {
+        return reservaService.listar();
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

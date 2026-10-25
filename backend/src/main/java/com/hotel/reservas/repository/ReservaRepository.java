@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.List;
 
 public interface ReservaRepository extends JpaRepository<Reserva, Integer> {
 
@@ -27,4 +28,12 @@ public interface ReservaRepository extends JpaRepository<Reserva, Integer> {
                       @Param("entrada") LocalDate entrada,
                       @Param("salida") LocalDate salida,
                       @Param("estados") Collection<EstadoReserva> estados);
+
+    @Query("""
+            select r from Reserva r
+            join fetch r.huesped
+            join fetch r.habitacion
+            order by r.id desc
+            """)
+    List<Reserva> listarConDetalle();
 }

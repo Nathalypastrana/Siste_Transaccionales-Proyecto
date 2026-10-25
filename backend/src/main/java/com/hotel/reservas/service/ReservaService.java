@@ -106,6 +106,13 @@ public class ReservaService {
     }
 
     @Transactional(readOnly = true)
+    public List<ReservaResponse> listar() {
+        return reservaRepository.listarConDetalle().stream()
+                .map(ReservaResponse::de)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public ReservaResponse obtener(Integer id) {
         return reservaRepository.findById(id)
                 .map(ReservaResponse::de)
