@@ -105,6 +105,18 @@ input.invalido, select.invalido { border-color: var(--error); background: #fffaf
 .error-campo { color: var(--error); font-size: 13px; font-weight: 400; }
 .ayuda { color: var(--texto-suave); font-size: 13px; font-weight: 400; }
 .buscador { width: 100%; margin-bottom: 14px; }
+.filtros { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.filtro {
+  border: 1px solid var(--borde); background: var(--superficie); color: var(--texto);
+  border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 14px; cursor: pointer;
+}
+.filtro:hover { border-color: var(--primario); }
+.filtro.activo { background: var(--primario); border-color: var(--primario); color: #fff; }
+.filtro-conteo {
+  display: inline-block; min-width: 22px; margin-left: 4px; padding: 0 6px; border-radius: 999px;
+  background: var(--fondo); color: var(--texto-suave); font-size: 12px; font-weight: 600; text-align: center;
+}
+.filtro.activo .filtro-conteo { background: rgba(255, 255, 255, 0.2); color: #fff; }
 
 .resumen {
   background: #eef4fa; border: 1px solid #cfe0f1; border-radius: 8px; padding: 12px 14px;

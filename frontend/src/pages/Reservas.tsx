@@ -4,10 +4,22 @@ import { api, ApiError } from '../api'
 import { Alerta, Cargando, Insignia } from '../components/Estado'
 import { useCarga } from '../hooks'
 import { fechaCorta, moneda } from '../utils'
+import type { EstadoReserva } from '../types'
+
+type Filtro = 'TODAS' | EstadoReserva
+
+const FILTROS: { valor: Filtro; texto: string }[] = [
+  { valor: 'TODAS', texto: 'Todas' },
+  { valor: 'PENDIENTE', texto: 'Pendientes' },
+  { valor: 'CONFIRMADA', texto: 'Confirmadas' },
+  { valor: 'CANCELADA', texto: 'Canceladas' },
+  { valor: 'FINALIZADA', texto: 'Finalizadas' },
+]
 
 export default function Reservas() {
   const { datos, error, cargando, recargar } = useCarga(api.reservas)
   const [busqueda, setBusqueda] = useState('')
+  const [filtro, setFiltro] = useState<Filtro>('TODAS')
   const [mensaje, setMensaje] = useState<{ tipo: 'error' | 'exito'; texto: string } | null>(null)
 
   async function cancelar(id: number) {
@@ -26,14 +38,17 @@ export default function Reservas() {
   if (error || !datos) return <Alerta tipo="error">{error}</Alerta>
 
   const q = busqueda.trim().toLowerCase()
-  const visibles = q
-    ? datos.filter(
-        (r) =>
-          r.huespedNombre.toLowerCase().includes(q) ||
-          r.habitacionNumero.toLowerCase().includes(q) ||
-          String(r.id) === q,
-      )
-    : datos
+  const contar = (f: Filtro) =>
+    f === 'TODAS' ? datos.length : datos.filter((r) => r.estado === f).length
+  const visibles = datos
+    .filter((r) => filtro === 'TODAS' || r.estado === filtro)
+    .filter(
+      (r) =>
+        !q ||
+        r.huespedNombre.toLowerCase().includes(q) ||
+        r.habitacionNumero.toLowerCase().includes(q) ||
+        String(r.id) === q,
+    )
 
   return (
     <>
@@ -53,6 +68,22 @@ export default function Reservas() {
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
+        <div className="filtros" role="group" aria-label="Filtrar por estado">
+          {FILTROS.map((f) => (
+            <button
+              key={f.valor}
+              type="button"
+              className={filtro === f.valor ? 'filtro activo' : 'filtro'}
+              aria-pressed={filtro === f.valor}
+              onClick={() => setFiltro(f.valor)}
+            >
+              {f.texto} <span className="filtro-conteo">{contar(f.valor)}</span>
+            </button>
+          ))}
+        </div>
+        <p className="ayuda">
+          Mostrando {visibles.length} de {datos.length} reservas
+        </p>
         {visibles.length === 0 ? (
           <p className="vacio">No se encontraron reservas.</p>
         ) : (
