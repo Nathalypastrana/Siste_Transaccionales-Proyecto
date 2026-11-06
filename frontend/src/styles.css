@@ -150,3 +150,67 @@ input.invalido, select.invalido { border-color: var(--error); background: #fffaf
   .formulario { grid-template-columns: 1fr; }
   table { display: block; overflow-x: auto; }
 }
+
+/* ---------- Navegación, estado de conexión ---------- */
+.marca { text-decoration: none; color: inherit; }
+.sidebar { display: flex; flex-direction: column; }
+.sidebar nav { flex: 1; }
+.conexion {
+  display: flex; gap: 10px; align-items: center; margin-top: 16px; padding: 10px 12px;
+  border-radius: 8px; background: rgba(255, 255, 255, 0.08); font-size: 13px;
+}
+.conexion small { display: block; opacity: 0.75; }
+.conexion-punto { width: 10px; height: 10px; border-radius: 50%; background: #aab7c4; flex-shrink: 0; }
+.conexion-ok .conexion-punto { background: #4cd08a; }
+.conexion-error .conexion-punto { background: #ff6b60; }
+
+.migas { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--texto-suave); margin-bottom: 14px; }
+.migas a { text-decoration: none; }
+.migas a:hover { text-decoration: underline; }
+.migas strong { color: var(--texto); font-weight: 600; }
+
+/* ---------- Botones ---------- */
+.boton-secundario {
+  display: inline-block; background: #fff; color: var(--primario); border: 1px solid var(--primario);
+  border-radius: 8px; padding: 9px 16px; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;
+}
+.boton-secundario:hover { background: #eef4fa; }
+.boton-peligro-solido {
+  background: var(--error); color: #fff; border: 0; border-radius: 8px; padding: 10px 16px;
+  font: inherit; font-weight: 600; cursor: pointer;
+}
+.boton-peligro-solido:hover { background: #8f1d17; }
+.acciones { gap: 10px; }
+.error-carga { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+
+/* ---------- Avisos (toasts) ---------- */
+.avisos {
+  position: fixed; top: 16px; right: 16px; z-index: 50; display: flex; flex-direction: column; gap: 10px;
+  max-width: min(380px, calc(100vw - 32px));
+}
+.aviso {
+  display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 10px;
+  background: #fff; border: 1px solid var(--borde); border-left-width: 5px;
+  box-shadow: 0 6px 20px rgba(20, 35, 55, 0.15); animation: entrada 0.18s ease-out;
+}
+.aviso-exito { border-left-color: var(--exito); }
+.aviso-error { border-left-color: var(--error); }
+.aviso-icono {
+  width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0;
+  color: #fff; font-size: 13px; font-weight: 700;
+}
+.aviso-exito .aviso-icono { background: var(--exito); }
+.aviso-error .aviso-icono { background: var(--error); }
+.aviso-texto { flex: 1; font-size: 14.5px; }
+.aviso-cerrar { background: none; border: 0; font-size: 20px; line-height: 1; cursor: pointer; color: var(--texto-suave); }
+@keyframes entrada { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+/* ---------- Diálogo de confirmación ---------- */
+.modal-fondo {
+  position: fixed; inset: 0; background: rgba(20, 35, 55, 0.45); display: grid; place-items: center; z-index: 40; padding: 16px;
+}
+.modal { background: #fff; border-radius: 12px; padding: 22px; width: 100%; max-width: 420px; }
+.modal p { color: var(--texto-suave); margin: 0 0 18px; }
+.modal-acciones { display: flex; justify-content: flex-end; gap: 10px; }
+
+:focus-visible { outline: 2px solid #4a86c5; outline-offset: 2px; }

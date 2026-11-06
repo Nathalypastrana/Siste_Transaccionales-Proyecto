@@ -4,6 +4,7 @@ import type {
   HuespedForm,
   Reserva,
   ReservaForm,
+  Salud,
   Usuario,
 } from './types'
 
@@ -45,6 +46,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  salud: () => request<Salud>('/api/salud'),
+
   habitaciones: () => request<Habitacion[]>('/api/habitaciones'),
   disponibles: (entrada: string, salida: string) =>
     request<Habitacion[]>(`/api/habitaciones/disponibles?entrada=${entrada}&salida=${salida}`),

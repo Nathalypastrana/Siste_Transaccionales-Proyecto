@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { api, ApiError } from '../api'
-import { Alerta, Cargando } from '../components/Estado'
+import { Link } from 'react-router-dom'
+import { Cargando, ErrorCarga } from '../components/Estado'
+import { useToast } from '../components/Toast'
 import { useCarga } from '../hooks'
 import type { HuespedForm } from '../types'
 
@@ -32,7 +34,7 @@ export default function Huespedes() {
   const { datos, error, cargando, recargar } = useCarga(api.huespedes)
   const [form, setForm] = useState<HuespedForm>(VACIO)
   const [errores, setErrores] = useState<Errores>({})
-  const [mensaje, setMensaje] = useState<{ tipo: 'error' | 'exito'; texto: string } | null>(null)
+  const toast = useToast()
   const [enviando, setEnviando] = useState(false)
 
   function cambiar(campo: keyof HuespedForm, valor: string) {
@@ -42,19 +44,21 @@ export default function Huespedes() {
 
   async function enviar(ev: React.FormEvent) {
     ev.preventDefault()
-    setMensaje(null)
     const errs = validar(form)
     setErrores(errs)
-    if (Object.keys(errs).length > 0) return
+    if (Object.keys(errs).length > 0) {
+      toast('error', 'Revisa los campos marcados en rojo antes de guardar.')
+      return
+    }
 
     setEnviando(true)
     try {
       const h = await api.crearHuesped(form)
-      setMensaje({ tipo: 'exito', texto: `Huésped ${h.nombres} ${h.apellidos} registrado.` })
+      toast('exito', `Huésped ${h.nombres} ${h.apellidos} registrado correctamente.`)
       setForm(VACIO)
       recargar()
     } catch (e) {
-      setMensaje({ tipo: 'error', texto: e instanceof ApiError ? e.message : 'Error inesperado' })
+      toast('error', e instanceof ApiError ? e.message : 'Error inesperado al registrar el huésped.')
     } finally {
       setEnviando(false)
     }
@@ -64,11 +68,13 @@ export default function Huespedes() {
     <>
       <header className="encabezado">
         <h1>Huéspedes</h1>
+        <Link to="/reservas/nueva" className="boton-secundario">
+          Nueva reserva →
+        </Link>
       </header>
 
       <section className="panel">
         <h2>Registrar huésped</h2>
-        {mensaje && <Alerta tipo={mensaje.tipo}>{mensaje.texto}</Alerta>}
         <form onSubmit={enviar} noValidate className="formulario">
           <label>
             Tipo de documento
@@ -135,7 +141,7 @@ export default function Huespedes() {
       <section className="panel">
         <h2>Huéspedes registrados</h2>
         {cargando && <Cargando />}
-        {error && <Alerta tipo="error">{error}</Alerta>}
+        {error && <ErrorCarga mensaje={error} onReintentar={recargar} />}
         {datos && datos.length === 0 && <p className="vacio">No hay huéspedes registrados.</p>}
         {datos && datos.length > 0 && (
           <table>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, ApiError } from '../api'
-import { Alerta, Cargando } from '../components/Estado'
+import { Alerta, Cargando, ErrorCarga } from '../components/Estado'
 import { useCarga } from '../hooks'
 import type { Habitacion, Reserva } from '../types'
 import { fechaCorta, hoy, moneda, noches } from '../utils'
@@ -106,7 +106,7 @@ export default function NuevaReserva() {
   }
 
   if (base.cargando) return <Cargando />
-  if (base.error || !base.datos) return <Alerta tipo="error">{base.error}</Alerta>
+  if (base.error || !base.datos) return <ErrorCarga mensaje={base.error} onReintentar={base.recargar} />
 
   const { huespedes, usuarios } = base.datos
 
@@ -241,6 +241,9 @@ export default function NuevaReserva() {
         )}
 
         <div className="acciones ancho-completo">
+          <Link to="/reservas" className="boton-secundario">
+            Cancelar
+          </Link>
           <button type="submit" className="boton" disabled={enviando}>
             {enviando ? 'Reservando…' : 'Confirmar reserva'}
           </button>

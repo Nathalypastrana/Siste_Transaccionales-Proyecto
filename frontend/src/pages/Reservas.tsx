@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, ApiError } from '../api'
-import { Alerta, Cargando, Insignia } from '../components/Estado'
+import Confirmar from '../components/Confirmar'
+import { Cargando, ErrorCarga, Insignia } from '../components/Estado'
+import { useToast } from '../components/Toast'
 import { useCarga } from '../hooks'
 import { fechaCorta, moneda } from '../utils'
 import type { EstadoReserva } from '../types'
@@ -18,24 +20,24 @@ const FILTROS: { valor: Filtro; texto: string }[] = [
 
 export default function Reservas() {
   const { datos, error, cargando, recargar } = useCarga(api.reservas)
+  const toast = useToast()
   const [busqueda, setBusqueda] = useState('')
   const [filtro, setFiltro] = useState<Filtro>('TODAS')
-  const [mensaje, setMensaje] = useState<{ tipo: 'error' | 'exito'; texto: string } | null>(null)
+  const [porCancelar, setPorCancelar] = useState<number | null>(null)
 
   async function cancelar(id: number) {
-    if (!window.confirm(`¿Cancelar la reserva #${id}?`)) return
-    setMensaje(null)
+    setPorCancelar(null)
     try {
       await api.cancelarReserva(id)
-      setMensaje({ tipo: 'exito', texto: `Reserva #${id} cancelada.` })
+      toast('exito', `La reserva #${id} fue cancelada.`)
       recargar()
     } catch (e) {
-      setMensaje({ tipo: 'error', texto: e instanceof ApiError ? e.message : 'Error inesperado' })
+      toast('error', e instanceof ApiError ? e.message : 'Error inesperado al cancelar.')
     }
   }
 
   if (cargando) return <Cargando />
-  if (error || !datos) return <Alerta tipo="error">{error}</Alerta>
+  if (error || !datos) return <ErrorCarga mensaje={error} onReintentar={recargar} />
 
   const q = busqueda.trim().toLowerCase()
   const contar = (f: Filtro) =>
@@ -58,8 +60,6 @@ export default function Reservas() {
           + Nueva reserva
         </Link>
       </header>
-
-      {mensaje && <Alerta tipo={mensaje.tipo}>{mensaje.texto}</Alerta>}
 
       <section className="panel">
         <input
@@ -114,7 +114,7 @@ export default function Reservas() {
                   <td>{moneda(r.valorTotal)}</td>
                   <td>
                     {(r.estado === 'CONFIRMADA' || r.estado === 'PENDIENTE') && (
-                      <button className="boton-peligro" onClick={() => cancelar(r.id)}>
+                      <button className="boton-peligro" onClick={() => setPorCancelar(r.id)}>
                         Cancelar
                       </button>
                     )}
@@ -125,6 +125,16 @@ export default function Reservas() {
           </table>
         )}
       </section>
+
+      {porCancelar !== null && (
+        <Confirmar
+          titulo="Cancelar reserva"
+          mensaje={`¿Seguro que deseas cancelar la reserva #${porCancelar}? La habitación quedará libre en esas fechas.`}
+          textoConfirmar="Sí, cancelar reserva"
+          onConfirmar={() => cancelar(porCancelar)}
+          onCancelar={() => setPorCancelar(null)}
+        />
+      )}
     </>
   )
 }

@@ -48,6 +48,12 @@ export interface Reserva {
   valorTotal: number
 }
 
+export interface Salud {
+  estado: string
+  baseDatos: string
+  versionServidor: string
+}
+
 export interface ReservaForm {
   huespedId: number
   habitacionId: number

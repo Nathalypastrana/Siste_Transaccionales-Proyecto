@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { api } from '../api'
-import { Alerta, Cargando, Insignia } from '../components/Estado'
+import { Cargando, ErrorCarga, Insignia } from '../components/Estado'
 import { useCarga } from '../hooks'
 import type { EstadoHabitacion } from '../types'
 import { moneda } from '../utils'
@@ -14,11 +14,11 @@ const ESTADOS: Array<EstadoHabitacion | 'TODAS'> = [
 ]
 
 export default function Habitaciones() {
-  const { datos, error, cargando } = useCarga(api.habitaciones)
+  const { datos, error, cargando, recargar } = useCarga(api.habitaciones)
   const [filtro, setFiltro] = useState<EstadoHabitacion | 'TODAS'>('TODAS')
 
   if (cargando) return <Cargando />
-  if (error || !datos) return <Alerta tipo="error">{error}</Alerta>
+  if (error || !datos) return <ErrorCarga mensaje={error} onReintentar={recargar} />
 
   const visibles = filtro === 'TODAS' ? datos : datos.filter((h) => h.estado === filtro)
 

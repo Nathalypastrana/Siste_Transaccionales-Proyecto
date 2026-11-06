@@ -21,3 +21,21 @@ export function Alerta({
     </div>
   )
 }
+
+/** Error al cargar datos (por ejemplo, sin conexión) con botón para reintentar. */
+export function ErrorCarga({
+  mensaje,
+  onReintentar,
+}: {
+  mensaje: string | null
+  onReintentar: () => void
+}) {
+  return (
+    <div className="alerta alerta-error error-carga" role="alert">
+      <span>{mensaje ?? 'No se pudieron cargar los datos.'}</span>
+      <button className="boton-secundario" onClick={onReintentar}>
+        Reintentar
+      </button>
+    </div>
+  )
+}

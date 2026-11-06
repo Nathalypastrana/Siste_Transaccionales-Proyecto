@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom'
 import { api } from '../api'
-import { Alerta, Cargando } from '../components/Estado'
+import { Cargando, ErrorCarga } from '../components/Estado'
 import { useCarga } from '../hooks'
 import { fechaCorta, moneda } from '../utils'
 
 export default function Inicio() {
-  const { datos, error, cargando } = useCarga(async () => {
+  const { datos, error, cargando, recargar } = useCarga(async () => {
     const [habitaciones, reservas, huespedes] = await Promise.all([
       api.habitaciones(),
       api.reservas(),
@@ -15,7 +15,7 @@ export default function Inicio() {
   })
 
   if (cargando) return <Cargando />
-  if (error || !datos) return <Alerta tipo="error">{error}</Alerta>
+  if (error || !datos) return <ErrorCarga mensaje={error} onReintentar={recargar} />
 
   const { habitaciones, reservas, huespedes } = datos
   const disponibles = habitaciones.filter((h) => h.estado === 'DISPONIBLE').length

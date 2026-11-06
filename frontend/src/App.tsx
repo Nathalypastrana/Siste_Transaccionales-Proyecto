@@ -1,4 +1,6 @@
-import { NavLink, Route, Routes } from 'react-router-dom'
+import { Link, NavLink, Route, Routes } from 'react-router-dom'
+import EstadoConexion from './components/EstadoConexion'
+import Migas from './components/Migas'
 import Inicio from './pages/Inicio'
 import Habitaciones from './pages/Habitaciones'
 import Huespedes from './pages/Huespedes'
@@ -13,17 +15,29 @@ const enlaces = [
   { to: '/huespedes', texto: 'Huéspedes' },
 ]
 
+function NoEncontrada() {
+  return (
+    <section className="panel">
+      <h1>Página no encontrada</h1>
+      <p className="vacio">La dirección no corresponde a ninguna pantalla del sistema.</p>
+      <Link to="/" className="boton">
+        Volver al inicio
+      </Link>
+    </section>
+  )
+}
+
 export default function App() {
   return (
     <div className="layout">
       <aside className="sidebar">
-        <div className="marca">
+        <Link to="/" className="marca" aria-label="Ir al inicio">
           <span className="marca-icono">H</span>
           <div>
             <strong>Hotel Reservas</strong>
             <small>Sistema transaccional</small>
           </div>
-        </div>
+        </Link>
         <nav>
           {enlaces.map((e) => (
             <NavLink
@@ -36,16 +50,18 @@ export default function App() {
             </NavLink>
           ))}
         </nav>
+        <EstadoConexion />
       </aside>
 
       <main className="contenido">
+        <Migas />
         <Routes>
           <Route path="/" element={<Inicio />} />
           <Route path="/reservas/nueva" element={<NuevaReserva />} />
           <Route path="/reservas" element={<Reservas />} />
           <Route path="/habitaciones" element={<Habitaciones />} />
           <Route path="/huespedes" element={<Huespedes />} />
-          <Route path="*" element={<p>Página no encontrada.</p>} />
+          <Route path="*" element={<NoEncontrada />} />
         </Routes>
       </main>
     </div>
