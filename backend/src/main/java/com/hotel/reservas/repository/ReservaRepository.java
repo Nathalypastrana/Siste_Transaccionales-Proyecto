@@ -36,4 +36,13 @@ public interface ReservaRepository extends JpaRepository<Reserva, Integer> {
             order by r.id desc
             """)
     List<Reserva> listarConDetalle();
+
+    @Query("""
+            select r from Reserva r
+            join fetch r.huesped
+            join fetch r.habitacion
+            where r.huesped.id = :huespedId
+            order by r.fechaEntrada desc
+            """)
+    List<Reserva> listarPorHuesped(@Param("huespedId") Integer huespedId);
 }

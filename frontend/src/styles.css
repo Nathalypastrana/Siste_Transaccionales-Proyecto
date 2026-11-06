@@ -214,3 +214,25 @@ input.invalido, select.invalido { border-color: var(--error); background: #fffaf
 .modal-acciones { display: flex; justify-content: flex-end; gap: 10px; }
 
 :focus-visible { outline: 2px solid #4a86c5; outline-offset: 2px; }
+
+/* ---------- Consultor virtual (chat) ---------- */
+.chat-cabecera { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 14px; }
+.chat-cabecera label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; min-width: 240px; }
+.chat-nota { color: var(--texto-suave); font-size: 13px; margin: 0 0 12px; }
+.chat {
+  background: #eef1f5; border: 1px solid var(--borde); border-radius: 12px; padding: 16px;
+  height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+}
+.burbuja { max-width: 78%; padding: 9px 13px; border-radius: 14px; white-space: pre-wrap; font-size: 14.5px; }
+.burbuja-huesped { align-self: flex-end; background: #d9fdd3; border-bottom-right-radius: 4px; }
+.burbuja-consultor { align-self: flex-start; background: #fff; border-bottom-left-radius: 4px; }
+.burbuja-escribiendo { color: var(--texto-suave); font-style: italic; }
+.chat-vacio { margin: auto; text-align: center; color: var(--texto-suave); }
+.sugerencias { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 12px; }
+.sugerencia {
+  background: #fff; border: 1px solid #c5ccd6; border-radius: 999px; padding: 6px 12px; cursor: pointer;
+  font: inherit; font-size: 13px; color: var(--primario);
+}
+.sugerencia:hover { background: #eef4fa; }
+.chat-entrada { display: flex; gap: 10px; margin-top: 12px; }
+.chat-entrada input { flex: 1; }

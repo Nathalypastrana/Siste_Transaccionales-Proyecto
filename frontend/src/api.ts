@@ -58,6 +58,12 @@ export const api = {
 
   usuarios: () => request<Usuario[]>('/api/usuarios'),
 
+  simularAsistente: (telefono: string, mensaje: string) =>
+    request<{ respuesta: string }>('/api/asistente/simular', {
+      method: 'POST',
+      body: JSON.stringify({ telefono, mensaje }),
+    }),
+
   reservas: () => request<Reserva[]>('/api/reservas'),
   crearReserva: (data: ReservaForm) =>
     request<Reserva>('/api/reservas', { method: 'POST', body: JSON.stringify(data) }),

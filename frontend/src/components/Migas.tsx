@@ -5,6 +5,7 @@ const TITULOS: Record<string, string> = {
   '/reservas/nueva': 'Nueva reserva',
   '/habitaciones': 'Habitaciones',
   '/huespedes': 'Huéspedes',
+  '/consultor': 'Consultor virtual',
 }
 
 /** Ruta de navegación (Inicio / Sección / Pantalla) para volver con un clic. */

@@ -9,6 +9,7 @@ Aplicación web para registrar huéspedes y gestionar reservas de habitaciones. 
 |------|------------|
 | Interfaz | React 18 + TypeScript + Vite |
 | API / lógica de negocio | Java 17 + Spring Boot 3 (Spring Web, Validation, Security) |
+| Consultor virtual (IA) | API de Claude (Anthropic) con *tool use* + WhatsApp Business Platform (Cloud API) |
 | Acceso a datos | Spring Data JPA + Hibernate |
 | Base de datos | SQL Server |
 
@@ -110,6 +111,7 @@ Abrir http://localhost:5173. El menú lateral muestra el estado de la conexión 
 | Reservas | Consultar, buscar y cancelar reservas (con confirmación) |
 | Habitaciones | Consultar habitaciones, tarifa vigente y estado |
 | Huéspedes | Registrar huéspedes (validado) y consultar el listado |
+| Consultor virtual | Simulador del chat de WhatsApp para probar el asistente de IA |
 
 Navegación: menú lateral, ruta de navegación (Inicio / Reservas / …), botones de retorno y página 404 con
 enlace al inicio. Las operaciones muestran avisos de éxito o de error; si no hay conexión aparece un mensaje
@@ -133,6 +135,8 @@ con botón **Reintentar**.
 | GET / POST | `/api/reservas` | Listar / crear reservas |
 | GET | `/api/reservas/{id}` | Consultar una reserva |
 | PATCH | `/api/reservas/{id}/cancelar` | Cancelar una reserva |
+| GET / POST | `/api/whatsapp/webhook` | Webhook de WhatsApp (verificación y mensajes entrantes, con firma) |
+| POST | `/api/asistente/simular` | Simulador del consultor (desactivado por defecto) |
 
 ## Control de concurrencia
 
@@ -149,6 +153,24 @@ Prueba automática (con el backend corriendo):
 
 Resultado esperado: una respuesta `201` y nueve `409`. Los pasos completos y las consultas de verificación
 están en [`docs/verificacion.md`](docs/verificacion.md).
+
+## Consultor virtual de reservas (IA)
+
+Asistente que atiende consultas de huéspedes por WhatsApp (disponibilidad, tarifas, estado de su reserva, política
+de cancelación) usando la API de Claude. El modelo no accede a la base de datos: solicita **herramientas de solo
+lectura** definidas por la aplicación, que consultan los mismos servicios de la API REST. Identifica al huésped por
+su número de teléfono, responde solo con datos del sistema y deriva al recepcionista lo que no pueda resolver.
+
+Para probarlo sin cuenta de Meta:
+
+```
+export ANTHROPIC_API_KEY='sk-ant-...'
+export ASISTENTE_SIMULADOR=true     # solo desarrollo
+cd backend && mvn spring-boot:run
+```
+
+Luego abrir **Consultor virtual** en la interfaz. La arquitectura, las variables de entorno, las decisiones de
+seguridad y la conexión con WhatsApp real están en [`docs/asistente-ia.md`](docs/asistente-ia.md).
 
 ## Pendiente
 

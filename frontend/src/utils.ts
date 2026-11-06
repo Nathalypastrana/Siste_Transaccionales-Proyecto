@@ -24,3 +24,12 @@ export function fechaCorta(iso: string): string {
   const [y, m, d] = iso.split('-')
   return `${d}/${m}/${y}`
 }
+
+/** Suma días a una fecha AAAA-MM-DD. */
+export function sumarDias(iso: string, dias: number): string {
+  const d = new Date(iso + 'T00:00:00')
+  d.setDate(d.getDate() + dias)
+  const mes = String(d.getMonth() + 1).padStart(2, '0')
+  const dia = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${mes}-${dia}`
+}

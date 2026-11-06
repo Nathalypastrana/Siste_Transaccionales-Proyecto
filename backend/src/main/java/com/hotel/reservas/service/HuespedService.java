@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +23,30 @@ public class HuespedService {
         return huespedRepository.findAllByOrderByApellidosAscNombresAsc().stream()
                 .map(HuespedResponse::de)
                 .toList();
+    }
+
+    /**
+     * Busca un huésped por su número de teléfono (por ejemplo, el de WhatsApp).
+     * Compara solo los dígitos y los últimos 10, para ignorar indicativo, espacios y guiones.
+     */
+    @Transactional(readOnly = true)
+    public Optional<HuespedResponse> buscarPorTelefono(String telefono) {
+        String buscado = ultimos10(telefono);
+        if (buscado.isEmpty()) {
+            return Optional.empty();
+        }
+        return huespedRepository.findByTelefonoIsNotNull().stream()
+                .filter(h -> buscado.equals(ultimos10(h.getTelefono())))
+                .findFirst()
+                .map(HuespedResponse::de);
+    }
+
+    private static String ultimos10(String telefono) {
+        if (telefono == null) {
+            return "";
+        }
+        String digitos = telefono.replaceAll("\\D", "");
+        return digitos.length() > 10 ? digitos.substring(digitos.length() - 10) : digitos;
     }
 
     @Transactional

@@ -2,6 +2,7 @@ import { Link, NavLink, Route, Routes } from 'react-router-dom'
 import EstadoConexion from './components/EstadoConexion'
 import Migas from './components/Migas'
 import Inicio from './pages/Inicio'
+import Consultor from './pages/Consultor'
 import Habitaciones from './pages/Habitaciones'
 import Huespedes from './pages/Huespedes'
 import NuevaReserva from './pages/NuevaReserva'
@@ -13,6 +14,7 @@ const enlaces = [
   { to: '/reservas', texto: 'Reservas', fin: true },
   { to: '/habitaciones', texto: 'Habitaciones' },
   { to: '/huespedes', texto: 'Huéspedes' },
+  { to: '/consultor', texto: 'Consultor virtual' },
 ]
 
 function NoEncontrada() {
@@ -61,6 +63,7 @@ export default function App() {
           <Route path="/reservas" element={<Reservas />} />
           <Route path="/habitaciones" element={<Habitaciones />} />
           <Route path="/huespedes" element={<Huespedes />} />
+          <Route path="/consultor" element={<Consultor />} />
           <Route path="*" element={<NoEncontrada />} />
         </Routes>
       </main>

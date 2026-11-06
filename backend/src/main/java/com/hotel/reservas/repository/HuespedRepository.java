@@ -11,4 +11,6 @@ public interface HuespedRepository extends JpaRepository<Huesped, Integer> {
     Optional<Huesped> findByTipoDocumentoAndNumeroDocumento(String tipoDocumento, String numeroDocumento);
 
     List<Huesped> findAllByOrderByApellidosAscNombresAsc();
+
+    List<Huesped> findByTelefonoIsNotNull();
 }
