@@ -1,104 +1,156 @@
-# Diseño de un Sistema Transaccional para la Gestión de Reservas en un Hotel
+# Sistema transaccional para la gestión de reservas de un hotel
 
-## Descripción
+Aplicación web para registrar huéspedes y gestionar reservas de habitaciones. Su objetivo central es
+**garantizar que no existan reservas superpuestas**, incluso cuando varias solicitudes llegan al mismo tiempo.
 
-Este proyecto propone el diseño de un sistema transaccional para la gestión de reservas en un hotel, orientado a mejorar el control de habitaciones, huéspedes, tarifas, disponibilidad y reservas.
+## Tecnologías
 
-La solución busca reducir errores asociados a procesos manuales, como duplicidad de información, pérdida de datos, disponibilidad desactualizada y reservas duplicadas.
+| Capa | Tecnología |
+|------|------------|
+| Interfaz | React 18 + TypeScript + Vite |
+| API / lógica de negocio | Java 17 + Spring Boot 3 (Spring Web, Validation, Security) |
+| Acceso a datos | Spring Data JPA + Hibernate |
+| Base de datos | SQL Server |
 
-El sistema implementará mecanismos de gestión de transacciones basados en las propiedades ACID: Atomicidad, Consistencia, Aislamiento y Durabilidad, con el propósito de garantizar la integridad y confiabilidad de la información durante las diferentes operaciones realizadas por los usuarios.
+## Estructura del repositorio
 
-Uno de los principales aspectos del proyecto será el control de concurrencia, debido a que dos o más usuarios podrían intentar reservar la misma habitación para las mismas fechas de manera simultánea.
+```
+├── backend/     # API REST (controller → service → repository → model)
+├── frontend/    # Interfaz React (pages, components, api.ts)
+├── database/    # Scripts SQL (creación, datos de prueba, reinicio, verificación)
+├── pruebas/     # Prueba de concurrencia
+└── docs/        # Guía de verificación del flujo completo
+```
 
-## Objetivo general
+Separación de responsabilidades: la **interfaz** (`frontend/src/pages`) solo presenta y valida; la
+**lógica de negocio** vive en `backend/.../service`; el **acceso a datos** en `backend/.../repository`; y la
+**conexión a la base** en un módulo propio, `backend/.../config/DatabaseConnection.java`, configurado desde
+`backend/src/main/resources/application.properties`.
 
-Diseñar un sistema transaccional para la gestión de reservas hoteleras que permita administrar huéspedes, habitaciones, tarifas, disponibilidad y reservas, garantizando la integridad y consistencia de la información mediante propiedades ACID y mecanismos de control de concurrencia.
+## Requisitos
 
-## Objetivos específicos
+- **JDK 17** o superior
+- **Maven 3.9** o superior
+- **Node.js 18** o superior (recomendado la versión LTS)
+- **SQL Server** 2019 o superior (puede ser un contenedor Docker)
+- Git
 
-- Diseñar una estructura de información para gestionar huéspedes, habitaciones, tarifas y reservas.
-- Implementar operaciones transaccionales para la creación, modificación y cancelación de reservas.
-- Aplicar las propiedades ACID para garantizar la integridad y consistencia de los datos.
-- Implementar mecanismos de control de concurrencia para evitar reservas duplicadas.
-- Realizar pruebas de concurrencia mediante solicitudes simultáneas sobre una misma habitación.
-- Verificar que únicamente una transacción pueda confirmar una reserva cuando existan solicitudes simultáneas para el mismo recurso y periodo.
-- Validar que las operaciones fallidas sean rechazadas o revertidas sin generar inconsistencias en la base de datos.
+## Instalación y configuración
 
-## Tecnologías utilizadas
+### 1. Base de datos
 
-- Java
-- Spring Boot
-- Spring Data JPA
-- Hibernate
-- Spring Security
-- JWT
-- React
-- TypeScript
-- Microsoft SQL Server
+Con SQL Server en ejecución, ejecutar en este orden:
 
-## Base de datos
+1. `database/schema.sql`: crea la base `ReservasHotelDB` y las tablas. **No borra datos**; se puede repetir.
+2. `database/datos_prueba.sql`: carga huéspedes, habitaciones, tarifas y usuarios de prueba.
 
-El sistema utiliza Microsoft SQL Server como sistema gestor de base de datos.
+> `database/reiniciar_base.sql` elimina **todas** las tablas y sus datos. Úsalo solo en desarrollo.
 
-La base de datos utilizada en el proyecto se denomina:
+Ejemplo con un contenedor Docker llamado `sqlserver`:
 
-`ReservasHotelDB`
+```
+docker cp database/schema.sql sqlserver:/tmp/schema.sql
+docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '<clave>' -C -i /tmp/schema.sql
+docker cp database/datos_prueba.sql sqlserver:/tmp/datos_prueba.sql
+docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '<clave>' -C -i /tmp/datos_prueba.sql
+```
 
-La estructura está organizada mediante siete tablas principales:
+(En algunas imágenes la ruta es `/opt/mssql-tools/bin/sqlcmd`.)
 
-1. **TipoHabitacion:** almacena los tipos de habitación disponibles y su capacidad.
-2. **Habitacion:** almacena la información de las habitaciones, su número, piso, capacidad y estado.
-3. **Tarifa:** almacena los valores de las tarifas asociadas a los tipos de habitación y sus periodos de vigencia.
-4. **Huesped:** almacena la información de los huéspedes.
-5. **Usuario:** almacena los usuarios encargados de operar el sistema y sus roles.
-6. **Reserva:** registra las reservas realizadas, relacionando huéspedes, habitaciones, usuarios y tarifas.
-7. **Comprobante:** registra los comprobantes asociados a las reservas.
+### 2. Conexión del backend
 
-La tabla `Reserva` constituye la entidad central del modelo, debido a que relaciona información de huéspedes, habitaciones, usuarios y tarifas.
+La conexión se define en `backend/src/main/resources/application.properties` y se sobrescribe con variables
+de entorno, para no guardar claves en el repositorio:
 
-## Integridad de los datos
+| Variable | Valor por defecto |
+|----------|-------------------|
+| `DB_URL` | `jdbc:sqlserver://localhost:1433;databaseName=ReservasHotelDB;encrypt=true;trustServerCertificate=true` |
+| `DB_USER` | `sa` |
+| `DB_PASSWORD` | (definir siempre) |
 
-La base de datos utiliza diferentes restricciones para mantener la integridad de la información:
+```
+export DB_USER='sa'
+export DB_PASSWORD='<clave>'
+```
 
-- Claves primarias (`PRIMARY KEY`) para identificar de forma única cada registro.
-- Claves foráneas (`FOREIGN KEY`) para establecer las relaciones entre las tablas.
-- Restricciones `CHECK` para validar valores permitidos.
-- Restricciones `UNIQUE` para evitar registros duplicados.
-- Valores `DEFAULT` para establecer valores automáticos.
-- Tipos de datos adecuados para cada atributo.
+(En PowerShell: `$env:DB_PASSWORD='<clave>'`.) Si la clave tiene caracteres como `!` o `$`, ponla entre comillas simples.
 
-Entre las validaciones implementadas se encuentra el control de fechas de las reservas, donde la fecha de salida debe ser posterior a la fecha de entrada.
+### 3. Frontend
 
-## Datos de prueba
+```
+cd frontend
+npm install
+```
 
-El proyecto incluye datos iniciales para comprobar el funcionamiento de la base de datos.
+Si el backend no está en `http://localhost:8080`, crear `frontend/.env.local` con `VITE_API_URL=http://host:puerto`.
 
-Los datos de prueba incluyen:
+## Ejecución
 
-- Tipos de habitación.
-- Habitaciones.
-- Usuarios.
-- Huéspedes.
-- Tarifas.
-- Reservas.
-- Comprobantes.
+En dos terminales:
 
-Los datos se encuentran en el archivo:
+```
+# Terminal 1 - API (puerto 8080)
+cd backend
+mvn spring-boot:run
 
-`database/datos_prueba.sql`
+# Terminal 2 - Interfaz (puerto 5173)
+cd frontend
+npm run dev
+```
 
-## Pruebas de la base de datos
+Abrir http://localhost:5173. El menú lateral muestra el estado de la conexión con la base de datos
+(verde: conectada; rojo: sin conexión).
 
-Las consultas de comprobación se encuentran en:
+## Funcionalidades
 
-`database/pruebas.sql`
+| Pantalla | Qué permite |
+|----------|-------------|
+| Inicio | Indicadores y últimas reservas |
+| Nueva reserva | Elegir huésped y fechas, ver solo las habitaciones libres, calcular el total y confirmar |
+| Reservas | Consultar, buscar y cancelar reservas (con confirmación) |
+| Habitaciones | Consultar habitaciones, tarifa vigente y estado |
+| Huéspedes | Registrar huéspedes (validado) y consultar el listado |
 
-Estas pruebas permiten verificar:
+Navegación: menú lateral, ruta de navegación (Inicio / Reservas / …), botones de retorno y página 404 con
+enlace al inicio. Las operaciones muestran avisos de éxito o de error; si no hay conexión aparece un mensaje
+con botón **Reintentar**.
 
-- Los datos almacenados en las tablas.
-- Las restricciones de integridad.
-- Las claves foráneas.
-- Las relaciones entre las entidades.
-- El rechazo de datos que no cumplen las restricciones establecidas.
+## Validación y manejo de errores
 
-Como prueba de integridad, se verifica que una reserva con una fecha de salida anterior a la fecha de entrada sea rechazada por la restricción `CK_Reserva_Fechas`.
+- **Interfaz:** campos obligatorios, formato de documento, teléfono y correo, fechas coherentes.
+- **API:** Bean Validation en los datos recibidos; respuestas `400` (datos inválidos), `404` (no existe),
+  `409` (conflicto, por ejemplo habitación ya reservada o documento duplicado) y `503` (base de datos sin conexión).
+
+## API
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/api/salud` | Estado de la conexión con la base de datos |
+| GET | `/api/habitaciones` | Listar habitaciones con tarifa vigente |
+| GET | `/api/habitaciones/disponibles?entrada=&salida=` | Habitaciones libres en un rango |
+| GET / POST | `/api/huespedes` | Listar / registrar huéspedes |
+| GET | `/api/usuarios` | Usuarios activos |
+| GET / POST | `/api/reservas` | Listar / crear reservas |
+| GET | `/api/reservas/{id}` | Consultar una reserva |
+| PATCH | `/api/reservas/{id}/cancelar` | Cancelar una reserva |
+
+## Control de concurrencia
+
+`ReservaService.crear` se ejecuta en una sola transacción: bloquea la fila de la habitación
+(`PESSIMISTIC_WRITE`), verifica que no haya cruces de fechas con reservas activas y guarda la reserva y su
+comprobante. Si dos solicitudes compiten por la misma habitación y fechas, solo una se confirma y la otra
+recibe `409`. Cualquier error revierte la transacción completa.
+
+Prueba automática (con el backend corriendo):
+
+```
+./pruebas/concurrencia.sh 10 4 2027-03-10 2027-03-12
+```
+
+Resultado esperado: una respuesta `201` y nueve `409`. Los pasos completos y las consultas de verificación
+están en [`docs/verificacion.md`](docs/verificacion.md).
+
+## Pendiente
+
+- Autenticación con JWT y control de acceso por rol (hoy el usuario que registra la reserva se elige en el formulario)
+- Modificación de reservas y administración de habitaciones y tarifas
