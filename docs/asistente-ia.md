@@ -57,7 +57,7 @@ Responde en el idioma del huésped y, si no puede resolver algo con las herramie
 |----------|-----|
 | `ASISTENTE_PROVEEDOR` | `claude` (por defecto) o `gemini` |
 | `GEMINI_API_KEY` | Clave de Google AI Studio (https://aistudio.google.com/apikey). Tiene nivel gratuito |
-| `GEMINI_MODELO` | Modelo de Gemini (por defecto `gemini-2.5-flash`; `gemini-2.5-flash-lite` si se agota la cuota) |
+| `GEMINI_MODELO` | Modelo de Gemini (por defecto `gemini-3.5-flash-lite`; los modelos de Google se retiran con el tiempo: lista los vigentes con `GET /v1beta/models`) |
 | `ANTHROPIC_API_KEY` | Clave de la API de Claude (https://console.anthropic.com). Es de pago por uso |
 | `ANTHROPIC_MODELO` | Modelo de Claude (por defecto `claude-haiku-5-5`) |
 | `ASISTENTE_SIMULADOR` | `true` para activar el simulador (solo desarrollo) |

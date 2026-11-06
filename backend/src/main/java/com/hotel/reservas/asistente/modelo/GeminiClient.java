@@ -39,7 +39,7 @@ public class GeminiClient implements ModeloLenguaje {
     public GeminiClient(ObjectMapper mapper,
                         @Value("${gemini.api-key:}") String apiKey,
                         @Value("${gemini.base-url:https://generativelanguage.googleapis.com/v1beta}") String baseUrl,
-                        @Value("${gemini.modelo:gemini-2.5-flash}") String modelo,
+                        @Value("${gemini.modelo:gemini-3.5-flash-lite}") String modelo,
                         @Value("${gemini.max-tokens:4096}") int maxTokens) {
         this.mapper = mapper;
         this.apiKey = apiKey;
@@ -176,12 +176,18 @@ public class GeminiClient implements ModeloLenguaje {
     }
 
     private JsonNode llamar(ObjectNode cuerpo) {
-        return http.post()
-                .uri("/models/{modelo}:generateContent", modelo)
-                .header("content-type", "application/json")
-                .body(cuerpo)
-                .retrieve()
-                .body(JsonNode.class);
+        try {
+            return http.post()
+                    .uri("/models/{modelo}:generateContent", modelo)
+                    .header("content-type", "application/json")
+                    .body(cuerpo)
+                    .retrieve()
+                    .body(JsonNode.class);
+        } catch (org.springframework.web.client.RestClientResponseException e) {
+            // Muestra la respuesta de Google (sin la clave) para poder diagnosticar
+            throw new IllegalStateException("Gemini respondió HTTP " + e.getStatusCode().value()
+                    + " con el modelo '" + modelo + "': " + e.getResponseBodyAsString(), e);
+        }
     }
 
     private String textoDe(JsonNode partes) {
