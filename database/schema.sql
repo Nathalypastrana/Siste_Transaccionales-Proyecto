@@ -1,3 +1,10 @@
+/*
+  SCRIPT DE CREACIÓN - ReservasHotelDB
+  Es NO DESTRUCTIVO: solo crea la base, las tablas y el índice si no existen.
+  Se puede ejecutar varias veces sin perder datos.
+  Para borrar y reconstruir todo (solo desarrollo) usar reiniciar_base.sql.
+*/
+
 IF DB_ID('ReservasHotelDB') IS NULL
 BEGIN
     CREATE DATABASE ReservasHotelDB;
@@ -9,183 +16,163 @@ USE ReservasHotelDB;
 
 GO
 
-/* ELIMINAR TABLAS EXISTENTES */
-
-IF OBJECT_ID('Comprobante', 'U') IS NOT NULL
-    DROP TABLE Comprobante;
-
-IF OBJECT_ID('Reserva', 'U') IS NOT NULL
-    DROP TABLE Reserva;
-
-IF OBJECT_ID('Tarifa', 'U') IS NOT NULL
-    DROP TABLE Tarifa;
-
-IF OBJECT_ID('Huesped', 'U') IS NOT NULL
-    DROP TABLE Huesped;
-
-IF OBJECT_ID('Usuario', 'U') IS NOT NULL
-    DROP TABLE Usuario;
-
-IF OBJECT_ID('Habitacion', 'U') IS NOT NULL
-    DROP TABLE Habitacion;
-
-IF OBJECT_ID('TipoHabitacion', 'U') IS NOT NULL
-    DROP TABLE TipoHabitacion;
-
-GO
-
 /* TABLA: TipoHabitacion */
-CREATE TABLE TipoHabitacion (
-    idTipoHabitacion INT IDENTITY(1,1) PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL UNIQUE,
-    descripcion VARCHAR(255) NULL,
-    capacidad INT NOT NULL CHECK (capacidad > 0)
-);
+IF OBJECT_ID('TipoHabitacion', 'U') IS NULL
+BEGIN
+    CREATE TABLE TipoHabitacion (
+        idTipoHabitacion INT IDENTITY(1,1) PRIMARY KEY,
+        nombre VARCHAR(50) NOT NULL UNIQUE,
+        descripcion VARCHAR(255) NULL,
+        capacidad INT NOT NULL CHECK (capacidad > 0)
+    );
+END
 
 GO
 
 /* TABLA: Habitacion */
-CREATE TABLE Habitacion (
-    idHabitacion INT IDENTITY(1,1) PRIMARY KEY,
-    numero VARCHAR(10) NOT NULL UNIQUE,
-    piso INT NOT NULL,
-    capacidad INT NOT NULL CHECK (capacidad > 0),
-    estado VARCHAR(20) NOT NULL DEFAULT 'DISPONIBLE',
-    idTipoHabitacion INT NOT NULL,
+IF OBJECT_ID('Habitacion', 'U') IS NULL
+BEGIN
+    CREATE TABLE Habitacion (
+        idHabitacion INT IDENTITY(1,1) PRIMARY KEY,
+        numero VARCHAR(10) NOT NULL UNIQUE,
+        piso INT NOT NULL,
+        capacidad INT NOT NULL CHECK (capacidad > 0),
+        estado VARCHAR(20) NOT NULL DEFAULT 'DISPONIBLE',
+        idTipoHabitacion INT NOT NULL,
 
-    CONSTRAINT CK_Habitacion_Estado
-        CHECK (estado IN (
-            'DISPONIBLE',
-            'RESERVADA',
-            'OCUPADA',
-            'MANTENIMIENTO'
-        )),
+        CONSTRAINT CK_Habitacion_Estado
+            CHECK (estado IN ('DISPONIBLE', 'RESERVADA', 'OCUPADA', 'MANTENIMIENTO')),
 
-    CONSTRAINT FK_Habitacion_TipoHabitacion
-        FOREIGN KEY (idTipoHabitacion)
-        REFERENCES TipoHabitacion(idTipoHabitacion)
-);
+        CONSTRAINT FK_Habitacion_TipoHabitacion
+            FOREIGN KEY (idTipoHabitacion)
+            REFERENCES TipoHabitacion(idTipoHabitacion)
+    );
+END
 
 GO
 
 /* TABLA: Usuario */
-CREATE TABLE Usuario (
-    idUsuario INT IDENTITY(1,1) PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    correo VARCHAR(100) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    rol VARCHAR(20) NOT NULL,
-    activo BIT NOT NULL DEFAULT 1,
+IF OBJECT_ID('Usuario', 'U') IS NULL
+BEGIN
+    CREATE TABLE Usuario (
+        idUsuario INT IDENTITY(1,1) PRIMARY KEY,
+        nombre VARCHAR(100) NOT NULL,
+        correo VARCHAR(100) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL,
+        rol VARCHAR(20) NOT NULL,
+        activo BIT NOT NULL DEFAULT 1,
 
-    CONSTRAINT CK_Usuario_Rol
-        CHECK (rol IN (
-            'RECEPCIONISTA',
-            'ADMINISTRADOR'
-        ))
-);
+        CONSTRAINT CK_Usuario_Rol
+            CHECK (rol IN ('RECEPCIONISTA', 'ADMINISTRADOR'))
+    );
+END
 
 GO
 
 /* TABLA: Huesped */
-CREATE TABLE Huesped (
-    idHuesped INT IDENTITY(1,1) PRIMARY KEY,
-    tipoDocumento VARCHAR(20) NOT NULL,
-    numeroDocumento VARCHAR(30) NOT NULL,
-    nombres VARCHAR(100) NOT NULL,
-    apellidos VARCHAR(100) NOT NULL,
-    telefono VARCHAR(20) NULL,
-    correo VARCHAR(100) NULL,
+IF OBJECT_ID('Huesped', 'U') IS NULL
+BEGIN
+    CREATE TABLE Huesped (
+        idHuesped INT IDENTITY(1,1) PRIMARY KEY,
+        tipoDocumento VARCHAR(20) NOT NULL,
+        numeroDocumento VARCHAR(30) NOT NULL,
+        nombres VARCHAR(100) NOT NULL,
+        apellidos VARCHAR(100) NOT NULL,
+        telefono VARCHAR(20) NULL,
+        correo VARCHAR(100) NULL,
 
-    CONSTRAINT UQ_Huesped_Documento
-        UNIQUE (tipoDocumento, numeroDocumento)
-);
+        CONSTRAINT UQ_Huesped_Documento
+            UNIQUE (tipoDocumento, numeroDocumento)
+    );
+END
 
 GO
 
 /* TABLA: Tarifa */
-CREATE TABLE Tarifa (
-    idTarifa INT IDENTITY(1,1) PRIMARY KEY,
-    valor DECIMAL(12,2) NOT NULL CHECK (valor > 0),
-    fechaInicio DATE NOT NULL,
-    fechaFin DATE NOT NULL,
-    activa BIT NOT NULL DEFAULT 1,
-    idTipoHabitacion INT NOT NULL,
+IF OBJECT_ID('Tarifa', 'U') IS NULL
+BEGIN
+    CREATE TABLE Tarifa (
+        idTarifa INT IDENTITY(1,1) PRIMARY KEY,
+        valor DECIMAL(12,2) NOT NULL CHECK (valor > 0),
+        fechaInicio DATE NOT NULL,
+        fechaFin DATE NOT NULL,
+        activa BIT NOT NULL DEFAULT 1,
+        idTipoHabitacion INT NOT NULL,
 
-    CONSTRAINT FK_Tarifa_TipoHabitacion
-        FOREIGN KEY (idTipoHabitacion)
-        REFERENCES TipoHabitacion(idTipoHabitacion),
+        CONSTRAINT FK_Tarifa_TipoHabitacion
+            FOREIGN KEY (idTipoHabitacion)
+            REFERENCES TipoHabitacion(idTipoHabitacion),
 
-    CONSTRAINT CK_Tarifa_Fechas
-        CHECK (fechaFin > fechaInicio)
-);
+        CONSTRAINT CK_Tarifa_Fechas
+            CHECK (fechaFin > fechaInicio)
+    );
+END
 
 GO
 
 /* TABLA: Reserva */
-CREATE TABLE Reserva (
-    idReserva INT IDENTITY(1,1) PRIMARY KEY,
-    idHuesped INT NOT NULL,
-    idHabitacion INT NOT NULL,
-    idUsuario INT NOT NULL,
-    idTarifa INT NOT NULL,
-    fechaEntrada DATE NOT NULL,
-    fechaSalida DATE NOT NULL,
-    fechaReserva DATETIME NOT NULL DEFAULT GETDATE(),
-    estado VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE',
-    valorTotal DECIMAL(12,2) NOT NULL CHECK (valorTotal >= 0),
+IF OBJECT_ID('Reserva', 'U') IS NULL
+BEGIN
+    CREATE TABLE Reserva (
+        idReserva INT IDENTITY(1,1) PRIMARY KEY,
+        idHuesped INT NOT NULL,
+        idHabitacion INT NOT NULL,
+        idUsuario INT NOT NULL,
+        idTarifa INT NOT NULL,
+        fechaEntrada DATE NOT NULL,
+        fechaSalida DATE NOT NULL,
+        fechaReserva DATETIME NOT NULL DEFAULT GETDATE(),
+        estado VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE',
+        valorTotal DECIMAL(12,2) NOT NULL CHECK (valorTotal >= 0),
 
-    CONSTRAINT FK_Reserva_Huesped
-        FOREIGN KEY (idHuesped)
-        REFERENCES Huesped(idHuesped),
+        CONSTRAINT FK_Reserva_Huesped
+            FOREIGN KEY (idHuesped) REFERENCES Huesped(idHuesped),
 
-    CONSTRAINT FK_Reserva_Habitacion
-        FOREIGN KEY (idHabitacion)
-        REFERENCES Habitacion(idHabitacion),
+        CONSTRAINT FK_Reserva_Habitacion
+            FOREIGN KEY (idHabitacion) REFERENCES Habitacion(idHabitacion),
 
-    CONSTRAINT FK_Reserva_Usuario
-        FOREIGN KEY (idUsuario)
-        REFERENCES Usuario(idUsuario),
+        CONSTRAINT FK_Reserva_Usuario
+            FOREIGN KEY (idUsuario) REFERENCES Usuario(idUsuario),
 
-    CONSTRAINT FK_Reserva_Tarifa
-        FOREIGN KEY (idTarifa)
-        REFERENCES Tarifa(idTarifa),
+        CONSTRAINT FK_Reserva_Tarifa
+            FOREIGN KEY (idTarifa) REFERENCES Tarifa(idTarifa),
 
-    CONSTRAINT CK_Reserva_Fechas
-        CHECK (fechaSalida > fechaEntrada),
+        CONSTRAINT CK_Reserva_Fechas
+            CHECK (fechaSalida > fechaEntrada),
 
-    CONSTRAINT CK_Reserva_Estado
-        CHECK (estado IN (
-            'PENDIENTE',
-            'CONFIRMADA',
-            'CANCELADA',
-            'FINALIZADA'
-        ))
-);
+        CONSTRAINT CK_Reserva_Estado
+            CHECK (estado IN ('PENDIENTE', 'CONFIRMADA', 'CANCELADA', 'FINALIZADA'))
+    );
+END
 
 GO
 
 /* ÍNDICE PARA DISPONIBILIDAD Y CONCURRENCIA */
-CREATE INDEX IX_Reserva_Habitacion_Fechas
-    ON Reserva(
-        idHabitacion,
-        fechaEntrada,
-        fechaSalida
-    )
-
-    INCLUDE (estado);
+IF NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = 'IX_Reserva_Habitacion_Fechas'
+      AND object_id = OBJECT_ID('Reserva')
+)
+BEGIN
+    CREATE INDEX IX_Reserva_Habitacion_Fechas
+        ON Reserva(idHabitacion, fechaEntrada, fechaSalida)
+        INCLUDE (estado);
+END
 
 GO
 
 /* TABLA: Comprobante */
-CREATE TABLE Comprobante (
-    idComprobante INT IDENTITY(1,1) PRIMARY KEY,
-    idReserva INT NOT NULL UNIQUE,
-    fechaGeneracion DATETIME NOT NULL DEFAULT GETDATE(),
-    numeroComprobante VARCHAR(30) NOT NULL UNIQUE,
+IF OBJECT_ID('Comprobante', 'U') IS NULL
+BEGIN
+    CREATE TABLE Comprobante (
+        idComprobante INT IDENTITY(1,1) PRIMARY KEY,
+        idReserva INT NOT NULL UNIQUE,
+        fechaGeneracion DATETIME NOT NULL DEFAULT GETDATE(),
+        numeroComprobante VARCHAR(30) NOT NULL UNIQUE,
 
-    CONSTRAINT FK_Comprobante_Reserva
-        FOREIGN KEY (idReserva)
-        REFERENCES Reserva(idReserva)
-);
+        CONSTRAINT FK_Comprobante_Reserva
+            FOREIGN KEY (idReserva) REFERENCES Reserva(idReserva)
+    );
+END
 
 GO
