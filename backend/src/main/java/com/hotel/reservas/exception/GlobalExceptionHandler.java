@@ -1,6 +1,9 @@
 package com.hotel.reservas.exception;
 
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
+import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -29,6 +32,15 @@ public class GlobalExceptionHandler {
     public ProblemDetail bloqueo(PessimisticLockingFailureException ex) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
                 "La habitación está siendo reservada por otra solicitud, intenta de nuevo.");
+    }
+
+    /** La base de datos no responde (apagada, clave incorrecta, red). */
+    @ExceptionHandler({DataAccessResourceFailureException.class,
+            CannotCreateTransactionException.class,
+            CannotGetJdbcConnectionException.class})
+    public ProblemDetail sinConexion(Exception ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE,
+                "No se pudo conectar con la base de datos. Verifica que SQL Server esté en ejecución.");
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
