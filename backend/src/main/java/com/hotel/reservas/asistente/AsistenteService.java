@@ -1,6 +1,13 @@
 package com.hotel.reservas.asistente;
 
+import com.hotel.reservas.asistente.intencion.ClasificadorIntencion;
+import com.hotel.reservas.asistente.intencion.Intencion;
 import com.hotel.reservas.asistente.modelo.ModeloLenguaje;
+import com.hotel.reservas.service.AutorizacionService;
+import com.hotel.reservas.util.Telefonos;
+import org.springframework.beans.factory.annotation.Value;
+import java.text.Normalizer;
+import java.util.Set;
 import com.hotel.reservas.dto.HuespedResponse;
 import com.hotel.reservas.dto.ReservaResponse;
 import com.hotel.reservas.model.EstadoReserva;
@@ -37,6 +44,26 @@ public class AsistenteService {
     private final HuespedService huespedService;
     private final ReservaService reservaService;
     private final Recepcion recepcion;
+    private final AutorizacionService autorizacion;
+    private final ClasificadorIntencion clasificador;
+
+    @Value("${asistente.aviso-privacidad:Hola, soy el asistente virtual de reservas del hotel (no soy una persona). Puedo informarte sobre disponibilidad, tarifas, el estado de tus reservas y la política de cancelación. Para responderte trataré tus datos personales (nombre, teléfono y datos de tus reservas) solo con esa finalidad, conforme a la Ley 1581 de 2012, y tus mensajes se procesan con un proveedor de inteligencia artificial. Puedes hablar con recepción o revocar esta autorización cuando quieras escribiendo REVOCAR. Para continuar responde ACEPTO. Si no aceptas, un recepcionista te atenderá.}")
+    private String avisoPrivacidad;
+
+    @Value("${asistente.politica-datos-url:}")
+    private String politicaDatosUrl;
+
+    static final String MSG_BIENVENIDA =
+            "Gracias, quedó registrada tu autorización. ¿En qué te puedo ayudar? Puedes preguntarme por disponibilidad y tarifas, "
+                    + "o por el estado de una reserva (con tu código de reserva).";
+    static final String MSG_REVOCADO =
+            "Listo, revocamos tu autorización: dejaremos de tratar tus datos con el asistente virtual. "
+                    + "Un recepcionista te contactará si necesitas que se supriman tus datos.";
+    static final String MSG_SIN_AUTORIZACION =
+            "Entendido, no trataremos tus datos con el asistente virtual. Un recepcionista te atenderá lo antes posible.";
+
+    private static final Set<String> ACEPTACION = Set.of("acepto", "si acepto", "autorizo", "si autorizo");
+    private static final Set<String> RECHAZO = Set.of("no acepto", "no autorizo", "no");
 
     /**
      * @param telefono     número del huésped (el de WhatsApp)
@@ -57,13 +84,25 @@ public class AsistenteService {
                 ? texto.substring(0, MAX_CARACTERES_MENSAJE)
                 : texto;
 
+        // Autorización previa (Ley 1581 de 2012): sin ella no se consulta ni se trata ningún dato personal.
+        try {
+            String respuestaAutorizacion = gestionarAutorizacion(telefono, nombrePerfil, pregunta);
+            if (respuestaAutorizacion != null) {
+                return respuestaAutorizacion;
+            }
+        } catch (Exception e) {
+            log.error("No se pudo verificar la autorización de datos para {}: {}",
+                    Telefonos.enmascarar(telefono), e.getMessage());
+            return MSG_NO_DISPONIBLE;
+        }
+
         ContextoHuesped ctx = null;
         try {
             Optional<HuespedResponse> huesped = huespedService.buscarPorTelefono(telefono);
             ctx = new ContextoHuesped(telefono, nombrePerfil, huesped.orElse(null));
 
             String respuesta = modelo.conversar(
-                    construirInstrucciones(ctx),
+                    construirInstrucciones(ctx, pregunta),
                     historial.obtener(telefono),
                     pregunta,
                     herramientas.para(ctx));
@@ -75,15 +114,44 @@ public class AsistenteService {
             historial.agregar(telefono, pregunta, respuesta);
             return respuesta;
         } catch (Exception e) {
-            log.error("Error del consultor virtual para {}: {}", telefono, e.getMessage(), e);
+            log.error("Error del consultor virtual para {}: {}", Telefonos.enmascarar(telefono), e.getMessage(), e);
             String nombre = ctx != null ? ctx.nombreParaMostrar() : "desconocido";
             recepcion.notificar(telefono, nombre, "Falla técnica del consultor: " + e.getClass().getSimpleName());
             return MSG_NO_DISPONIBLE;
         }
     }
 
+    /**
+     * Atiende los comandos de autorización (ACEPTO, REVOCAR, rechazo).
+     * @return el mensaje que debe recibir el huésped, o null si ya autorizó y la consulta puede continuar
+     */
+    private String gestionarAutorizacion(String telefono, String nombrePerfil, String pregunta) {
+        String comando = comando(pregunta);
+        if (comando.contains("revoc")) {
+            autorizacion.revocar(telefono);
+            recepcion.notificar(telefono, nombrePerfil == null ? "huésped no identificado" : nombrePerfil,
+                    "Revocó la autorización de tratamiento de datos (puede requerir supresión).");
+            return MSG_REVOCADO;
+        }
+        if (autorizacion.vigente(telefono)) {
+            return null;
+        }
+        if (ACEPTACION.contains(comando)) {
+            autorizacion.registrar(telefono);
+            return MSG_BIENVENIDA;
+        }
+        if (RECHAZO.contains(comando)) {
+            recepcion.notificar(telefono, nombrePerfil == null ? "huésped no identificado" : nombrePerfil,
+                    "No autorizó el tratamiento de datos; debe atenderlo una persona.");
+            return MSG_SIN_AUTORIZACION;
+        }
+        return politicaDatosUrl == null || politicaDatosUrl.isBlank()
+                ? avisoPrivacidad
+                : avisoPrivacidad + " Política de tratamiento de datos: " + politicaDatosUrl;
+    }
+
     /** Instrucciones del sistema: reglas del consultor y datos de personalización del huésped. */
-    String construirInstrucciones(ContextoHuesped ctx) {
+    String construirInstrucciones(ContextoHuesped ctx, String pregunta) {
         StringBuilder sb = new StringBuilder();
         sb.append("""
                 Eres el consultor virtual de reservas de un hotel y atiendes a los huéspedes por WhatsApp.
@@ -95,8 +163,12 @@ public class AsistenteService {
                 - Para disponibilidad y precios usa consultar_disponibilidad. Si faltan las fechas o el número \
                 de personas, pregúntalos antes. Recomienda el tipo de habitación adecuado con su tarifa por noche \
                 y el total estimado.
-                - Para el estado de una reserva usa consultar_mis_reservas. Para cancelaciones usa \
-                consultar_politica_cancelacion.
+                - Para el estado de una reserva pide SIEMPRE el código de la reserva (formato CR-XXXXXXXX, aparece \
+                en su comprobante) y úsalo con consultar_mis_reservas. Sin ese código no des ningún dato de reservas. \
+                Para cancelaciones usa consultar_politica_cancelacion.
+                - No pidas ni repitas datos sensibles (salud, etc.), documentos de identidad, correos, datos de pago \
+                ni datos de menores de edad. Si el huésped los comparte, no los uses y usa derivar_a_recepcionista.
+                - Eres un asistente virtual: si te lo preguntan, dilo, y recuerda que puede pedir hablar con recepción.
                 - No puedes crear, modificar ni cancelar reservas: explica que la confirmación la hace el recepcionista.
                 - Si no puedes resolver la consulta (cambios, pagos, quejas, solicitudes especiales o temas fuera \
                 de tus herramientas), usa derivar_a_recepcionista y dile al huésped que un recepcionista lo contactará.
@@ -107,14 +179,16 @@ public class AsistenteService {
                 """.formatted(LocalDate.now(HerramientasReservas.ZONA)));
 
         sb.append("\nDatos del huésped:\n");
+        boolean tieneReservaActiva = false;
         if (ctx.huesped() != null) {
             List<ReservaResponse> reservas = reservaService.listarPorHuesped(ctx.huesped().id());
             long previas = reservas.stream().filter(r -> r.estado() != EstadoReserva.CANCELADA).count();
-            sb.append("- Nombre: ").append(ctx.huesped().nombres())
-                    .append(" (dirígete a la persona por su nombre).\n");
+            tieneReservaActiva = reservas.stream().anyMatch(r ->
+                    (r.estado() == EstadoReserva.CONFIRMADA || r.estado() == EstadoReserva.PENDIENTE)
+                            && !r.fechaSalida().isBefore(LocalDate.now(HerramientasReservas.ZONA)));
+            String nombrePila = ctx.huesped().nombres().trim().split("\\s+")[0];
+            sb.append("- Nombre de pila: ").append(nombrePila).append(" (dirígete a la persona por su nombre).\n");
             sb.append("- Reservas anteriores no canceladas: ").append(previas).append(".\n");
-            reservas.stream().findFirst().ifPresent(r -> sb.append("- Última reserva: habitación ")
-                    .append(r.habitacionNumero()).append(", entrada ").append(r.fechaEntrada()).append(".\n"));
             if (previas > 0) {
                 sb.append("- Es un huésped que ya nos ha visitado: puedes agradecérselo brevemente.\n");
             }
@@ -122,6 +196,21 @@ public class AsistenteService {
             sb.append("- No está registrado en el sistema con este número. No uses su nombre ni ofrezcas datos de reservas; "
                     + "puedes informar disponibilidad y precios.\n");
         }
+        ClasificadorIntencion.Resultado r = clasificador.clasificar(pregunta, tieneReservaActiva);
+        log.info("Intención detectada: {} ({}%)", r.intencion(), Math.round(r.probabilidad() * 100));
+        sb.append("\nPista del clasificador de intención (solo orientativa, decide con el contexto): ");
+        if (r.intencion() == Intencion.DERIVAR) {
+            sb.append("el mensaje no trae señales claras de una consulta; si no entiendes qué necesita, pregúntaselo "
+                    + "o derívalo a recepción.\n");
+        } else {
+            sb.append("probablemente quiere ").append(r.intencion().descripcion()).append(".\n");
+        }
         return sb.toString();
+    }
+
+    /** Mensaje en minúsculas, sin tildes ni signos, para reconocer "ACEPTO", "Sí, acepto", "REVOCAR", etc. */
+    static String comando(String texto) {
+        String t = Normalizer.normalize(texto == null ? "" : texto, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+        return t.toLowerCase().replaceAll("[^a-z0-9 ]", " ").replaceAll("\\s+", " ").trim();
     }
 }

@@ -126,7 +126,7 @@ public class WhatsAppWebhookController {
                     : asistente.responder(de, nombre, texto);
             whatsApp.enviar(de, respuesta);
         } catch (Exception e) {
-            log.error("Error al atender el mensaje de {}: {}", de, e.getMessage(), e);
+            log.error("Error al atender el mensaje de {}: {}", com.hotel.reservas.util.Telefonos.enmascarar(de), e.getMessage(), e);
         }
     }
 

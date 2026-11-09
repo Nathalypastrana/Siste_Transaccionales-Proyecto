@@ -130,3 +130,20 @@ Los mensajes de texto libre se pueden responder dentro de las 24 h posteriores a
 - Solo se procesan mensajes de texto.
 - No hay login (JWT pendiente): por eso el simulador está apagado por defecto.
 - No hay pruebas automáticas contra la API del modelo (Claude/Gemini) ni contra Meta; deben verificarse manualmente con las credenciales propias.
+
+## Protección de datos (fase 8)
+
+- **Autorización previa.** Antes de procesar cualquier dato, el huésped recibe el aviso de privacidad y debe responder `ACEPTO`.
+  Si no acepta, no se procesa nada. Con `REVOCAR` retira la autorización en cualquier momento. Se guarda en la tabla
+  `AutorizacionDatos` (últimos 10 dígitos del teléfono, versión del aviso, fecha, revocada). Texto y versión en
+  `asistente.aviso-privacidad`, `asistente.politica-datos-url` y `asistente.version-aviso`.
+- **Verificación con código de reserva.** La herramienta `consultar_mis_reservas` exige el `codigo_reserva`
+  (número de comprobante `CR-XXXXXXXX`) y solo devuelve reservas de ese huésped.
+- **Minimización.** Al modelo solo llega el primer nombre, el número de reservas previas y la pregunta. No se envían
+  teléfono, documento ni correo. El teléfono se enmascara en los logs.
+- **Datos sensibles o de menores.** El prompt prohíbe solicitarlos y deriva a recepción.
+- **Clasificador de intención (red neuronal).** `asistente/intencion/`: perceptrón multicapa 6-4-5 (ReLU + softmax) entrenado
+  al arrancar con las 64 combinaciones de señales. Solo da una pista en el prompt (umbral 0,5); la decisión la toma el modelo.
+- **Importante:** el nivel gratuito de Gemini puede usar los datos para mejorar los modelos de Google. Con datos reales de
+  huéspedes usa el nivel de pago (o Claude por API) y firma el contrato/DPA con el proveedor.
+- El simulador (`ASISTENTE_SIMULADOR`) debe estar en `false` en producción.

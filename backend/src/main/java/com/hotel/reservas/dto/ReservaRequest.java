@@ -1,19 +1,14 @@
 package com.hotel.reservas.dto;
 
-import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 
-/**
- * usuarioId es el recepcionista que registra la reserva.
- * Cuando se implemente JWT, saldrá del token y se quitará de aquí.
- */
+/** El usuario que registra la reserva sale del token JWT, no del cuerpo de la petición. */
 public record ReservaRequest(
-        @NotNull Integer huespedId,
-        @NotNull Integer habitacionId,
-        @NotNull Integer usuarioId,
-        @NotNull @FutureOrPresent LocalDate fechaEntrada,
-        @NotNull LocalDate fechaSalida
+        @NotNull(message = "Selecciona un huésped") Integer huespedId,
+        @NotNull(message = "Selecciona una habitación") Integer habitacionId,
+        @NotNull(message = "La fecha de entrada es obligatoria") LocalDate fechaEntrada,
+        @NotNull(message = "La fecha de salida es obligatoria") LocalDate fechaSalida
 ) {
 }

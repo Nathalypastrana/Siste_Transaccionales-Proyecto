@@ -19,4 +19,6 @@ public interface TarifaRepository extends JpaRepository<Tarifa, Integer> {
             order by t.fechaInicio desc
             """)
     List<Tarifa> findVigentes(@Param("tipoId") Integer tipoId, @Param("fecha") LocalDate fecha);
+
+    List<Tarifa> findAllByOrderByTipoHabitacionNombreAscFechaInicioDesc();
 }

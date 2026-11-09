@@ -19,7 +19,7 @@ public class Recepcion {
 
     public void notificar(String telefonoHuesped, String nombreHuesped, String motivo) {
         log.warn("Consulta derivada a recepción. Huésped: {} ({}). Motivo: {}",
-                nombreHuesped, telefonoHuesped, motivo);
+                nombreHuesped, com.hotel.reservas.util.Telefonos.enmascarar(telefonoHuesped), motivo);
         if (numeroRecepcion == null || numeroRecepcion.isBlank()) {
             return;
         }

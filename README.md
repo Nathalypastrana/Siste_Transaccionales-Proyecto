@@ -176,3 +176,24 @@ seguridad y la conexión con WhatsApp real están en [`docs/asistente-ia.md`](do
 
 - Autenticación con JWT y control de acceso por rol (hoy el usuario que registra la reserva se elige en el formulario)
 - Modificación de reservas y administración de habitaciones y tarifas
+
+## Seguridad, roles y reportes (fase 8)
+
+- **Login con JWT** (`POST /api/auth/login`). Tres roles:
+  - Sin sesión: página pública del hotel (`/`, datos en `frontend/src/hotel.ts`) y acceso del personal (`/login`). Cada rol entra a su propio panel de inicio.
+  - `RECEPCIONISTA`: reservas, huéspedes, consulta de habitaciones y consultor. Inicio: llegadas y salidas del día.
+  - `ADMINISTRADOR` (administrador del hotel): reservas, reportes, tipos, habitaciones (crear, editar, estados), tarifas y cuentas de recepcionistas. Inicio: ocupación del mes.
+  - `ADMIN_GENERAL` (administrador general del programa): lo mismo que el del hotel, más cuentas de cualquier rol y el estado del sistema (`GET /api/sistema/estado`, es su inicio). Público sin sesión: `GET /api/publico/habitaciones`.
+  - `ADMIN_CORREO`/`ADMIN_PASSWORD` crean el primer administrador general; si ese correo ya era `ADMINISTRADOR`, se promueve. Hay que volver a ejecutar `schema.sql` (actualiza la restricción de roles). Contraseñas con BCrypt; límite de 5 intentos fallidos / 15 min.
+- Variables: `JWT_SECRET` (≥32 caracteres), `ADMIN_CORREO`, `ADMIN_PASSWORD`, `MIGRAR_CLAVES_PLANAS` (por defecto `true`: convierte contraseñas antiguas a BCrypt al iniciar sesión).
+- Nuevos endpoints: `PATCH /api/reservas/{id}`, `POST|GET /api/reservas/{id}/comprobante`, `/api/tipos-habitacion`, `/api/tarifas`, `/api/usuarios`, `GET /api/reportes/ocupacion?desde&hasta&tipoId`, filtros `estado/desde/hasta` en `GET /api/reservas`.
+- Tarea diaria (00:05 Bogotá y al arrancar): finaliza reservas vencidas y recalcula el estado de las habitaciones.
+- Consultor: autorización de datos (`ACEPTO`/`REVOCAR`), verificación por código de reserva, minimización. Ver `docs/asistente-ia.md`.
+
+## Sesión, recuperación de contraseña y auditoría (fase 9)
+
+- **Sesión de 2 horas** (`JWT_MINUTOS`, por defecto 120). A los 10 minutos del vencimiento aparece un aviso y a los 5 una ventana para **renovar** (`POST /api/auth/renovar`) o cerrar sesión; si no se renueva, se cierra sola. El tiempo restante se ve en el menú.
+- **Recuperar contraseña:** `¿Olvidaste tu contraseña?` en el login → enlace por correo de un solo uso que vence a los 30 minutos (máx. 3 solicitudes por hora por cuenta; solo se guarda el hash del token). Endpoints públicos `POST /api/auth/olvide` y `/api/auth/restablecer`.
+  - Para enviar correos reales define `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD`, `SMTP_FROM` y `APP_URL` (URL del frontend, p. ej. `https://hotel.ejemplo.com`).
+  - Sin `SPRING_MAIL_HOST` el correo no se envía y el enlace se escribe en el log del backend (solo para desarrollo).
+- **Auditoría** (solo administrador general, pantalla *Auditoría*, `GET /api/auditoria`): registra inicios de sesión (correctos, fallidos, bloqueados), renovaciones, recuperación de clave, y creación/cambios de reservas, comprobantes, habitaciones, tipos, tarifas y usuarios, con usuario, fecha, detalle (antes/después) e IP. Nunca guarda contraseñas ni tokens. Vuelve a ejecutar `database/schema.sql` (crea `Auditoria` y `RecuperacionClave`).

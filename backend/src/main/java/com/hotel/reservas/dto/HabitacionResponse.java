@@ -11,6 +11,7 @@ public record HabitacionResponse(
         Integer capacidad,
         EstadoHabitacion estado,
         String tipo,
-        BigDecimal precioNoche
+        BigDecimal precioNoche,
+        Integer tipoId
 ) {
 }

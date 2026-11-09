@@ -20,6 +20,9 @@ USE ReservasHotelDB;
 
 GO
 
+IF OBJECT_ID('AutorizacionDatos', 'U') IS NOT NULL DROP TABLE AutorizacionDatos;
+IF OBJECT_ID('Auditoria', 'U') IS NOT NULL DROP TABLE Auditoria;
+IF OBJECT_ID('RecuperacionClave', 'U') IS NOT NULL DROP TABLE RecuperacionClave;
 IF OBJECT_ID('Comprobante', 'U') IS NOT NULL DROP TABLE Comprobante;
 IF OBJECT_ID('Reserva', 'U') IS NOT NULL DROP TABLE Reserva;
 IF OBJECT_ID('Tarifa', 'U') IS NOT NULL DROP TABLE Tarifa;

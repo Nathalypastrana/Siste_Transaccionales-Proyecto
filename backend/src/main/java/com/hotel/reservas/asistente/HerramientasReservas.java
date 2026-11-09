@@ -100,31 +100,35 @@ public class HerramientasReservas {
     private Herramienta misReservas(ContextoHuesped ctx) {
         return new Herramienta(
                 "consultar_mis_reservas",
-                "Consulta las reservas del huésped que está escribiendo (estado, fechas, habitación y total). "
-                        + "Úsala para preguntas sobre el estado de su reserva.",
-                "{\"type\":\"object\",\"properties\":{}}",
+                "Consulta una reserva del huésped que está escribiendo (estado, fechas, habitación y total) a partir "
+                        + "del código de la reserva (formato CR-XXXXXXXX, está en su comprobante). Sin código no se "
+                        + "puede consultar: pídeselo al huésped. Úsala para preguntas sobre el estado de su reserva.",
+                """
+                {"type":"object","properties":{
+                  "codigo_reserva":{"type":"string","description":"Código de la reserva, por ejemplo CR-AB12CD34"}
+                },"required":["codigo_reserva"]}
+                """,
                 args -> {
+                    String codigo = args.path("codigo_reserva").asText("").trim();
+                    if (codigo.isEmpty()) {
+                        return "{\"error\":\"Falta el código de la reserva. Pídeselo al huésped (aparece en su comprobante).\"}";
+                    }
                     if (ctx.huesped() == null) {
                         return "{\"error\":\"No hay un huésped registrado con este número de WhatsApp, "
                                 + "por lo que no se pueden consultar reservas.\"}";
                     }
-                    List<ReservaResponse> reservas = reservaService.listarPorHuesped(ctx.huesped().id());
-                    ArrayNode lista = mapper.createArrayNode();
-                    reservas.stream().limit(10).forEach(r -> {
-                        ObjectNode o = lista.addObject();
-                        o.put("numero_reserva", r.id());
-                        o.put("habitacion", r.habitacionNumero());
-                        o.put("fecha_entrada", r.fechaEntrada().toString());
-                        o.put("fecha_salida", r.fechaSalida().toString());
-                        o.put("estado", r.estado().name());
-                        o.put("total_cop", r.valorTotal());
-                    });
-                    ObjectNode resultado = mapper.createObjectNode();
-                    resultado.set("reservas", lista);
-                    if (lista.isEmpty()) {
-                        resultado.put("mensaje", "El huésped no tiene reservas registradas.");
-                    }
-                    return resultado.toString();
+                    // El código debe pertenecer a una reserva del huésped que escribe (identificado por su teléfono).
+                    return reservaService.obtenerDeHuespedPorCodigo(ctx.huesped().id(), codigo)
+                            .map(r -> {
+                                ObjectNode o = mapper.createObjectNode();
+                                o.put("habitacion", r.habitacionNumero());
+                                o.put("fecha_entrada", r.fechaEntrada().toString());
+                                o.put("fecha_salida", r.fechaSalida().toString());
+                                o.put("estado", r.estado().name());
+                                o.put("total_cop", r.valorTotal());
+                                return o.toString();
+                            })
+                            .orElse("{\"error\":\"No se encontró una reserva con ese código asociada a este número.\"}");
                 });
     }
 

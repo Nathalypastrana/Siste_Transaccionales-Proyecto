@@ -43,4 +43,6 @@ public interface HabitacionRepository extends JpaRepository<Habitacion, Integer>
                                      @Param("salida") LocalDate salida,
                                      @Param("estados") Collection<EstadoReserva> estados,
                                      @Param("excluido") EstadoHabitacion excluido);
+
+    Optional<Habitacion> findByNumero(String numero);
 }

@@ -8,20 +8,15 @@ import { fechaCorta, hoy, moneda, noches } from '../utils'
 
 interface Errores {
   huespedId?: string
-  usuarioId?: string
   fechaEntrada?: string
   fechaSalida?: string
   habitacionId?: string
 }
 
 export default function NuevaReserva() {
-  const base = useCarga(async () => {
-    const [huespedes, usuarios] = await Promise.all([api.huespedes(), api.usuarios()])
-    return { huespedes, usuarios }
-  })
+  const base = useCarga(api.huespedes)
 
   const [huespedId, setHuespedId] = useState('')
-  const [usuarioId, setUsuarioId] = useState('')
   const [fechaEntrada, setFechaEntrada] = useState('')
   const [fechaSalida, setFechaSalida] = useState('')
   const [habitacionId, setHabitacionId] = useState('')
@@ -61,7 +56,6 @@ export default function NuevaReserva() {
   function validar(): Errores {
     const e: Errores = {}
     if (!huespedId) e.huespedId = 'Selecciona un huésped'
-    if (!usuarioId) e.usuarioId = 'Selecciona quién registra la reserva'
     if (!fechaEntrada) e.fechaEntrada = 'La fecha de entrada es obligatoria'
     else if (fechaEntrada < hoy()) e.fechaEntrada = 'La fecha de entrada no puede ser pasada'
     if (!fechaSalida) e.fechaSalida = 'La fecha de salida es obligatoria'
@@ -84,7 +78,6 @@ export default function NuevaReserva() {
       const r = await api.crearReserva({
         huespedId: Number(huespedId),
         habitacionId: Number(habitacionId),
-        usuarioId: Number(usuarioId),
         fechaEntrada,
         fechaSalida,
       })
@@ -108,7 +101,7 @@ export default function NuevaReserva() {
   if (base.cargando) return <Cargando />
   if (base.error || !base.datos) return <ErrorCarga mensaje={base.error} onReintentar={base.recargar} />
 
-  const { huespedes, usuarios } = base.datos
+  const huespedes = base.datos
 
   return (
     <>
@@ -150,26 +143,6 @@ export default function NuevaReserva() {
               No hay huéspedes. <Link to="/huespedes">Registra uno primero</Link>.
             </span>
           )}
-        </label>
-
-        <label>
-          Registrada por *
-          <select
-            value={usuarioId}
-            onChange={(e) => {
-              setUsuarioId(e.target.value)
-              setErrores((x) => ({ ...x, usuarioId: undefined }))
-            }}
-            className={errores.usuarioId ? 'invalido' : ''}
-          >
-            <option value="">— Selecciona —</option>
-            {usuarios.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.nombre} ({u.rol})
-              </option>
-            ))}
-          </select>
-          {errores.usuarioId && <span className="error-campo">{errores.usuarioId}</span>}
         </label>
 
         <label>

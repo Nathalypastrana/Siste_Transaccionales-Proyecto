@@ -1,17 +1,28 @@
 :root {
-  --fondo: #f4f6f9;
-  --superficie: #ffffff;
-  --borde: #e2e6ec;
-  --texto: #1d2733;
-  --texto-suave: #5d6b7c;
-  --primario: #1f4e79;
-  --primario-oscuro: #163a5a;
-  --exito: #1e7a46;
-  --exito-fondo: #e4f4ea;
-  --error: #b3261e;
-  --error-fondo: #fbe9e7;
-  --aviso: #8a5a00;
-  --aviso-fondo: #fff2d6;
+  /* Identidad visual Hotel En mi pueblito */
+  --fondo: #F5F0E6;
+  --superficie: #FFFEFA;
+  --borde: #E5DCCE;
+
+  --texto: #49382C;
+  --texto-suave: #82796F;
+
+  --primario: #35543B;
+  --primario-oscuro: #263F2C;
+
+  --verde-secundario: #82936A;
+  --terracota: #B96D45;
+  --cafe-madera: #49382C;
+
+  /* Estados del sistema */
+  --exito: #287747;
+  --exito-fondo: #E6F2E8;
+
+  --error: #B3261E;
+  --error-fondo: #FBE9E7;
+
+  --aviso: #8A5A00;
+  --aviso-fondo: #FFF2D6;
 }
 
 * { box-sizing: border-box; }
@@ -224,3 +235,929 @@ input.invalido, select.invalido { border-color: var(--error); background: #fffaf
 .sugerencia:hover { background: #eef4fa; }
 .chat-entrada { display: flex; gap: 10px; margin-top: 12px; }
 .chat-entrada input { flex: 1; }
+
+/* ───── Fase 8: login, sesión, filtros, pestañas, reportes, comprobante ───── */
+.login-fondo { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--primario); padding: 16px; }
+.login { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 14px; }
+.login label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; }
+.marca-login { color: var(--primario); justify-content: center; margin-bottom: 4px; }
+.sesion { margin-top: auto; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.25); color: #fff; font-size: 13px; display: flex; flex-direction: column; gap: 8px; }
+.sesion .boton-secundario { width: 100%; }
+.modal-ancho { max-width: 560px; }
+.filtros { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 14px; }
+.filtros .buscador { flex: 1 1 240px; width: auto; margin-bottom: 0; }
+.filtros label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600; }
+.fila-acciones { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.pestanas { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; border-bottom: 1px solid var(--borde); }
+.pestana { background: none; border: none; padding: 10px 16px; cursor: pointer; font-size: 15px; color: var(--texto-suave); border-bottom: 3px solid transparent; }
+.pestana.activa { color: var(--primario); font-weight: 600; border-bottom-color: var(--primario); }
+.barra { display: inline-block; width: 140px; height: 10px; background: var(--borde); border-radius: 5px; overflow: hidden; vertical-align: middle; margin-right: 8px; }
+.barra div { height: 100%; background: var(--primario); }
+.comprobante { border: 2px dashed var(--borde); border-radius: 10px; padding: 18px; margin-bottom: 14px; }
+.comprobante h3 { margin: 0 0 4px; }
+.comprobante-numero { font-size: 26px; font-weight: 700; color: var(--primario); letter-spacing: 1px; margin: 0 0 12px; }
+@media print {
+  body * { visibility: hidden; }
+  #comprobante-imprimible, #comprobante-imprimible * { visibility: visible; }
+  #comprobante-imprimible { position: absolute; left: 0; top: 0; width: 100%; border: none; }
+  .no-imprimir { display: none !important; }
+}
+
+/* ───── Página pública y vistas por rol ───── */
+.publica { min-height: 100vh; background: var(--fondo); }
+.publica-barra { display: flex; justify-content: space-between; align-items: center; padding: 14px 24px; background: var(--superficie); border-bottom: 1px solid var(--borde); }
+.publica-barra .marca { margin: 0; }
+.publica-hero { background: var(--primario); color: #fff; text-align: center; padding: 64px 20px; }
+.publica-hero h1 { margin: 0 0 8px; font-size: 40px; }
+.publica-hero p { margin: 0 0 20px; font-size: 18px; opacity: .9; }
+.publica-hero .boton { display: inline-block; text-decoration: none; background: #fff; color: var(--primario); }
+.publica-contenido { max-width: 960px; margin: 0 auto; padding: 24px 16px 40px; }
+.publica-contenido section { margin-bottom: 32px; }
+.publica-habitaciones { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.publica-precio { font-size: 22px; font-weight: 700; color: var(--primario); margin: 8px 0 0; }
+.publica-precio small { font-size: 13px; font-weight: 400; color: var(--texto-suave); }
+.publica-servicios { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 6px 20px; padding-left: 18px; }
+.publica-contacto { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 0; }
+.publica-contacto dt { font-size: 13px; color: var(--texto-suave); }
+.publica-contacto dd { margin: 2px 0 0; font-weight: 600; }
+.publica-pie { text-align: center; padding: 20px; color: var(--texto-suave); font-size: 13px; border-top: 1px solid var(--borde); }
+.enlace-volver { text-align: center; font-size: 14px; }
+.publica-barra .marca-icono { background: var(--primario); color: #fff; }
+.sesion-poca { color: #ffd37a; font-weight: 600; }
+.tabla-ancha { overflow-x: auto; }
+.tabla-ancha td { vertical-align: top; }
+
+
+/* =========================================
+   IDENTIDAD VISUAL - HOTEL EN MI PUEBLITO
+========================================= */
+
+/* Panel administrativo */
+.sidebar {
+  background: var(--primario);
+}
+
+.marca-icono {
+  color: var(--primario);
+}
+
+.enlace {
+  color: #E8EDE5;
+}
+
+.enlace:hover {
+  background: rgba(255,255,255,.12);
+}
+
+.enlace.activo {
+  color: var(--primario);
+  background: #F5F0E6;
+}
+
+.contenido {
+  background: var(--fondo);
+}
+
+.tarjeta-dato strong,
+.precio,
+.comprobante-numero {
+  color: var(--primario);
+}
+
+/* Botones */
+.boton {
+  background: var(--primario);
+}
+
+.boton:hover {
+  background: var(--primario-oscuro);
+}
+
+.boton-secundario {
+  color: var(--primario);
+  border-color: var(--primario);
+}
+
+.boton-secundario:hover {
+  background: #E9EDE5;
+}
+
+/* Formularios */
+input:focus,
+select:focus {
+  outline-color: #A8B99B;
+  border-color: var(--primario);
+}
+
+/* Resúmenes */
+.resumen {
+  background: #EDF0E7;
+  border-color: #D5DDCA;
+}
+
+/* Tablas */
+tbody tr:hover {
+  background: #F5F2EA;
+}
+
+/* Navegación */
+.migas a {
+  color: var(--primario);
+}
+
+.pestana.activa {
+  color: var(--primario);
+  border-bottom-color: var(--terracota);
+}
+
+/* Login */
+.login-fondo {
+  background: var(--primario);
+}
+
+/* Chat */
+.chat {
+  background: #F0EDE5;
+}
+
+.burbuja-huesped {
+  background: #E2EBD9;
+}
+
+.sugerencia {
+  color: var(--primario);
+  border-color: var(--borde);
+}
+
+.sugerencia:hover {
+  background: #E9EDE5;
+}
+
+/* =========================================
+   PÁGINA PÚBLICA
+========================================= */
+
+.publica {
+  background: var(--fondo);
+  color: var(--texto);
+}
+
+.publica-barra {
+  background: #FFFEFA;
+  border-bottom-color: var(--borde);
+}
+
+.publica-barra .marca-icono {
+  background: var(--primario);
+  color: white;
+}
+
+.publica-hero {
+  background: var(--primario);
+  color: white;
+  padding: 76px 20px;
+}
+
+.publica-hero h1 {
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.publica-hero p {
+  max-width: 750px;
+  margin: 12px auto 26px;
+  line-height: 1.7;
+  color: #F0F0E8;
+}
+
+.publica-hero .boton {
+  background: var(--terracota);
+  color: white;
+  border-radius: 10px;
+  padding: 13px 24px;
+  transition: background .2s, transform .2s;
+}
+
+.publica-hero .boton:hover {
+  background: #985435;
+  transform: translateY(-2px);
+}
+
+.publica-contenido {
+  max-width: 1100px;
+  padding: 40px 20px 55px;
+}
+
+.publica-contenido section {
+  margin-bottom: 42px;
+}
+
+.publica-contenido h2 {
+  color: var(--cafe-madera);
+  font-size: 25px;
+}
+
+.publica-habitaciones {
+  gap: 20px;
+}
+
+.publica-habitaciones .tarjeta-hab {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 15px;
+  padding: 22px;
+  transition: transform .2s, box-shadow .2s;
+}
+
+.publica-habitaciones .tarjeta-hab:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(73,56,44,.09);
+}
+
+.publica-precio {
+  color: var(--primario);
+}
+
+.publica-contacto {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  padding: 22px;
+}
+
+.publica-pie {
+  background: #EAE4D8;
+  color: var(--cafe-madera);
+  border-top: 1px solid var(--borde);
+  padding: 28px 20px;
+}
+
+/* Adaptación para celulares */
+@media (max-width: 760px) {
+  .publica-barra {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .publica-hero {
+    padding: 52px 18px;
+  }
+
+  .publica-hero h1 {
+    font-size: 32px;
+  }
+
+  .publica-contenido {
+    padding: 28px 16px;
+  }
+}
+
+
+/* ==========================================
+   HOTEL EN MI PUEBLITO - PAGINA PUBLICA
+========================================== */
+
+.hotel-publico {
+  --hotel-verde: #35543B;
+  --hotel-verde-oscuro: #263F2C;
+  --hotel-oliva: #82936A;
+  --hotel-terracota: #B96D45;
+  --hotel-crema: #F5F0E6;
+  --hotel-cafe: #49382C;
+  --hotel-blanco: #FFFEFA;
+
+  background: var(--hotel-crema);
+  color: var(--hotel-cafe);
+  min-height: 100vh;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.hotel-publico * {
+  box-sizing: border-box;
+}
+
+/* NAVBAR */
+
+.hotel-navbar {
+  min-height: 78px;
+  padding: 12px 6%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: var(--hotel-blanco);
+  border-bottom: 1px solid #E5DCCE;
+}
+
+.hotel-marca {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--hotel-cafe);
+  text-decoration: none;
+}
+
+.hotel-logo {
+  width: 100px;
+  height: 80px;
+  min-width: 100px;
+  object-fit: contain;
+  display: block;
+  border-radius: 30px;
+  background: transparent;
+  flex-shrink: 0;
+}
+
+.hotel-marca strong {
+  display: block;
+  font-size: 19px;
+}
+
+.hotel-marca small {
+  display: block;
+  color: var(--hotel-oliva);
+  font-size: 11px;
+}
+
+.hotel-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.hotel-nav-links a {
+  text-decoration: none;
+  color: var(--hotel-cafe);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.hotel-nav-links a:hover {
+  color: var(--hotel-terracota);
+}
+
+.hotel-acceso {
+  text-decoration: none;
+  color: white;
+  background: var(--hotel-verde);
+  padding: 11px 17px;
+  border-radius: 25px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* PORTADA */
+
+.hotel-hero {
+  min-height: 490px;
+  display: flex;
+  align-items: center;
+  padding: 65px 9%;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(32, 45, 28, .65),
+      rgba(32, 45, 28, .25)
+    ),
+    url('/img/Plaza-belen.jpg') center 52% / cover no-repeat;
+
+  color: white;
+}
+
+.hotel-hero-contenido {
+  max-width: 650px;
+}
+
+.hotel-etiqueta,
+.hotel-subtitulo {
+  display: block;
+  color: var(--hotel-terracota);
+  font-size: 12px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  margin-bottom: 13px;
+}
+
+.hotel-etiqueta {
+  color: #E8D6AD;
+}
+
+.hotel-hero h1 {
+  font-family: Georgia, serif;
+  font-size: clamp(38px, 5vw, 64px);
+  line-height: 1.12;
+  margin: 0 0 18px;
+  color: white;
+}
+
+.hotel-hero h1 span {
+  color: #F2D6A1;
+  font-style: italic;
+}
+
+.hotel-hero > div > p {
+  font-size: 21px;
+  line-height: 1.5;
+}
+
+.hotel-hero .hotel-hero-descripcion {
+  max-width: 520px;
+  font-size: 16px;
+  color: #F5F0E6;
+}
+
+.hotel-boton-principal {
+  display: inline-block;
+  background: var(--hotel-terracota);
+  color: white;
+  text-decoration: none;
+  border-radius: 30px;
+  padding: 14px 25px;
+  font-weight: 700;
+  margin-top: 15px;
+  transition: .2s;
+}
+
+.hotel-boton-principal:hover {
+  background: #985435;
+  transform: translateY(-2px);
+}
+
+/* CONTENIDO GENERAL */
+
+.hotel-contenido {
+  max-width: 1200px;
+  margin: auto;
+  padding: 65px 25px;
+}
+
+.hotel-seccion {
+  margin-top: 75px;
+}
+
+.hotel-titulo-seccion {
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+.hotel-titulo-seccion h2,
+.hotel-nosotros h2,
+.hotel-contacto h2 {
+  font-family: Georgia, serif;
+  font-size: 34px;
+  color: var(--hotel-cafe);
+  margin: 0 0 12px;
+}
+
+.hotel-titulo-seccion p {
+  color: #82796F;
+  font-family: Arial, sans-serif;
+}
+
+/* SOBRE NOSOTROS */
+
+.hotel-nosotros {
+  display: grid;
+  grid-template-columns: .9fr 1.1fr;
+  gap: 55px;
+  align-items: center;
+}
+
+.hotel-nosotros-imagen {
+  position: relative;
+  height: 360px;
+}
+
+.hotel-nosotros-imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 18px;
+}
+
+.hotel-nosotros-imagen span {
+  position: absolute;
+  bottom: 18px;
+  left: 15px;
+  right: 15px;
+  background: rgba(38, 63, 44, .88);
+  color: white;
+  text-align: center;
+  padding: 13px;
+  border-radius: 8px;
+  font-style: italic;
+}
+
+.hotel-nosotros-texto p,
+.hotel-contacto-texto p {
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+  color: #65594D;
+}
+
+.hotel-frase {
+  border-left: 4px solid var(--hotel-terracota);
+  padding: 12px 17px;
+  margin-top: 20px;
+  background: #EDE5D6;
+  font-style: italic;
+}
+
+.hotel-enlace {
+  display: inline-block;
+  color: var(--hotel-verde);
+  font-weight: 700;
+  margin-top: 20px;
+  text-decoration: none;
+}
+
+/* HABITACIONES */
+
+.hotel-habitaciones {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.hotel-habitacion {
+  background: var(--hotel-blanco);
+  border: 1px solid #E5DCCE;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 5px 18px rgba(73,56,44,.07);
+  transition: transform .2s, box-shadow .2s;
+}
+
+.hotel-habitacion:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(73,56,44,.12);
+}
+
+.hotel-habitacion-imagen {
+  height: 210px;
+  overflow: hidden;
+}
+
+.hotel-habitacion-imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .3s;
+}
+
+.hotel-habitacion:hover img {
+  transform: scale(1.04);
+}
+
+.hotel-habitacion-info {
+  padding: 21px;
+}
+
+.hotel-habitacion-info h3 {
+  color: var(--hotel-cafe);
+  font-size: 22px;
+  margin: 0 0 12px;
+}
+
+.hotel-habitacion-info p {
+  font-family: Arial, sans-serif;
+  color: #82796F;
+  font-size: 14px;
+}
+
+.hotel-capacidad {
+  display: block;
+  font-size: 13px;
+  color: #82796F;
+  margin: 15px 0;
+}
+
+.hotel-precio {
+  font-size: 23px;
+  font-weight: 700;
+  color: var(--hotel-verde);
+  margin-bottom: 18px;
+}
+
+.hotel-precio small {
+  font-size: 13px;
+  font-weight: 400;
+  color: #82796F;
+}
+
+.hotel-boton-habitacion {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  border: 1px solid var(--hotel-verde);
+  color: var(--hotel-verde);
+  border-radius: 25px;
+  padding: 10px;
+  font-weight: 700;
+  font-family: Arial, sans-serif;
+}
+
+.hotel-boton-habitacion:hover {
+  background: var(--hotel-verde);
+  color: white;
+}
+
+.hotel-mensaje {
+  text-align: center;
+  padding: 20px;
+  color: #82796F;
+}
+
+/* SERVICIOS */
+
+.hotel-experiencias {
+  padding: 45px 25px;
+  background: #EBE9DC;
+  border-radius: 20px;
+}
+
+.hotel-servicios {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.hotel-servicio {
+  text-align: center;
+  padding: 25px 15px;
+}
+
+.hotel-servicio-icono {
+  display: grid;
+  place-items: center;
+  margin: auto auto 15px;
+  width: 75px;
+  height: 75px;
+  border-radius: 50%;
+  background: #DCE4D0;
+  font-size: 32px;
+}
+
+.hotel-servicio h3 {
+  color: var(--hotel-verde);
+}
+
+.hotel-servicio p {
+  font-family: Arial, sans-serif;
+  color: #82796F;
+  font-size: 14px;
+}
+
+/* CONTACTO */
+
+.hotel-contacto {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+  padding: 40px;
+  background: var(--hotel-blanco);
+  border-radius: 18px;
+  border: 1px solid #E5DCCE;
+}
+
+.hotel-contacto-datos {
+  display: grid;
+  gap: 20px;
+}
+
+.hotel-dato {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-family: Arial, sans-serif;
+}
+
+.hotel-dato strong {
+  color: var(--hotel-verde);
+  font-size: 14px;
+}
+
+.hotel-dato span {
+  color: #65594D;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+/* FOOTER */
+
+.hotel-footer {
+  background: var(--hotel-verde);
+  color: white;
+  padding: 30px 7%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.hotel-footer-marca {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.hotel-footer-marca > span {
+  font-size: 35px;
+}
+
+.hotel-footer-marca strong {
+  font-family: Georgia, serif;
+  font-size: 21px;
+}
+
+.hotel-footer-marca p {
+  margin: 5px 0;
+  color: #E5E8D9;
+  font-size: 13px;
+}
+
+.hotel-footer > p {
+  font-size: 12px;
+}
+
+.hotel-footer > a {
+  color: white;
+  text-decoration: none;
+}
+
+/* WHATSAPP FLOTANTE */
+
+.hotel-whatsapp-flotante {
+  position: fixed;
+  right: 25px;
+  bottom: 25px;
+  width: 58px;
+  height: 58px;
+  background: #267A48;
+  color: white;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(0,0,0,.2);
+  z-index: 20;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 850px) {
+  .hotel-nav-links {
+    display: none;
+  }
+
+  .hotel-nosotros {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .hotel-habitaciones {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hotel-contacto {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 550px) {
+  .hotel-navbar {
+    padding: 12px;
+  }
+
+  .hotel-marca {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--hotel-cafe);
+    text-decoration: none;
+    min-width: 0;
+  }
+
+  .hotel-marca img {
+    flex-shrink: 0;
+  }
+
+  .hotel-logo {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    object-fit: contain;
+    display: block;
+    border-radius: 0;
+    background: transparent;
+    flex-shrink: 0;
+  }
+
+  .hotel-acceso {
+    padding: 9px 11px;
+    font-size: 11px;
+  }
+
+  .hotel-hero {
+    min-height: 430px;
+    padding: 45px 22px;
+    background-position: center;
+  }
+
+  .hotel-hero h1 {
+    font-size: 38px;
+  }
+
+  .hotel-hero > div > p {
+    font-size: 17px;
+  }
+
+  .hotel-contenido {
+    padding: 40px 16px;
+  }
+
+  .hotel-titulo-seccion h2,
+  .hotel-nosotros h2,
+  .hotel-contacto h2 {
+    font-size: 27px;
+  }
+
+  .hotel-habitaciones {
+    grid-template-columns: 1fr;
+  }
+
+  .hotel-servicios {
+    grid-template-columns: 1fr;
+  }
+
+  .hotel-contacto {
+    padding: 24px 18px;
+  }
+
+  .hotel-footer {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .hotel-footer-marca {
+    justify-content: center;
+  }
+}
+
+.logo-hotel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-hotel img {
+  display: block;
+  object-fit: contain;
+  border-radius: 0;
+  flex-shrink: 0;
+}
+
+.logo-hotel span {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--hotel-cafe, #49382C);
+}
+
+/* ENCABEZADO ADMINISTRACIÓN */
+
+.encabezado-admin {
+  display: flex;
+  align-items: center;
+  padding: 15px 25px;
+}
+
+.encabezado-admin-marca {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.encabezado-admin-marca .logo-hotel img {
+  width: 55px;
+  height: 55px;
+  object-fit: contain;
+  border-radius: 0;
+}
+
+.encabezado-admin-marca h1 {
+  margin: 0;
+  font-size: 25px;
+}
+
+.encabezado-admin-marca span {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  color: #82936A;
+}

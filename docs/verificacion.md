@@ -12,6 +12,10 @@ docker cp database/schema.sql sqlserver:/tmp/schema.sql
 docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '<clave>' -C -i /tmp/schema.sql
 ```
 
+Si ya tenías la base de fases anteriores, vuelve a ejecutar `schema.sql`: agrega la tabla `AutorizacionDatos` sin tocar datos.
+
+Variables nuevas del backend: `JWT_SECRET` (mín. 32 caracteres), `ADMIN_CORREO` y `ADMIN_PASSWORD` (crean el primer administrador si no hay ninguno). Todo endpoint, salvo el login, exige sesión: **inicia sesión primero** en la interfaz.
+
 Luego arrancar el backend (`backend/`, `mvn spring-boot:run`) y la interfaz (`frontend/`, `npm run dev`).
 
 ## 1. Flujo completo desde la interfaz
@@ -57,3 +61,12 @@ Después, ejecutar `verificar_flujo.sql`: la consulta 3 debe seguir sin filas.
 - Captura de la salida de `concurrencia.sh` (un 201, el resto 409).
 - Captura de `verificar_flujo.sql` con la reserva creada y la consulta 3 vacía.
 - Capturas de la interfaz: huésped registrado, reserva creada y listada.
+
+## 4. Rendimiento (RNF 05)
+
+```
+docker cp database/datos_rendimiento.sql sqlserver:/tmp/d.sql
+docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '<clave>' -C -d ReservasHotelDB -i /tmp/d.sql
+API_CORREO=<admin> API_PASSWORD=<clave> python3 pruebas/rendimiento.py
+```
+Carga 100 habitaciones y 10.000 reservas históricas (idempotente; limpieza comentada al final del script). Las tarifas deben cubrir las fechas de prueba.

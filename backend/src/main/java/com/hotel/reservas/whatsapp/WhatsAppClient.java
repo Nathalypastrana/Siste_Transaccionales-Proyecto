@@ -41,7 +41,7 @@ public class WhatsAppClient {
     /** Envía un mensaje de texto. Si WhatsApp no está configurado, solo deja registro en el log. */
     public void enviar(String destino, String texto) {
         if (!configurado()) {
-            log.warn("WhatsApp no está configurado; mensaje para {} no enviado.", destino);
+            log.warn("WhatsApp no está configurado; mensaje para {} no enviado.", com.hotel.reservas.util.Telefonos.enmascarar(destino));
             return;
         }
         String contenido = texto.length() > LIMITE_TEXTO ? texto.substring(0, LIMITE_TEXTO) : texto;

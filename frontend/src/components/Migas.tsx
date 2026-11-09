@@ -6,6 +6,10 @@ const TITULOS: Record<string, string> = {
   '/habitaciones': 'Habitaciones',
   '/huespedes': 'Huéspedes',
   '/consultor': 'Consultor virtual',
+  '/administracion': 'Administración',
+  '/reportes': 'Reportes de ocupación',
+  '/sistema': 'Estado del sistema',
+  '/auditoria': 'Auditoría',
 }
 
 /** Ruta de navegación (Inicio / Sección / Pantalla) para volver con un clic. */

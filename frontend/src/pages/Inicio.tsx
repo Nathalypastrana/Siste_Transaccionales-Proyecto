@@ -2,9 +2,11 @@ import { Link } from 'react-router-dom'
 import { api } from '../api'
 import { Cargando, ErrorCarga } from '../components/Estado'
 import { useCarga } from '../hooks'
-import { fechaCorta, moneda } from '../utils'
+import { fechaCorta, hoy, moneda } from '../utils'
+import { useAuth } from '../auth'
+import Sistema from './Sistema'
 
-export default function Inicio() {
+function PanelRecepcion() {
   const { datos, error, cargando, recargar } = useCarga(async () => {
     const [habitaciones, reservas, huespedes] = await Promise.all([
       api.habitaciones(),
@@ -21,6 +23,9 @@ export default function Inicio() {
   const disponibles = habitaciones.filter((h) => h.estado === 'DISPONIBLE').length
   const activas = reservas.filter((r) => r.estado === 'CONFIRMADA' || r.estado === 'PENDIENTE')
   const ultimas = reservas.slice(0, 5)
+  const dia = hoy()
+  const llegadas = reservas.filter((r) => r.fechaEntrada === dia && (r.estado === 'CONFIRMADA' || r.estado === 'PENDIENTE'))
+  const salidas = reservas.filter((r) => r.fechaSalida === dia && r.estado === 'CONFIRMADA')
 
   return (
     <>
@@ -48,6 +53,14 @@ export default function Inicio() {
           <span>Huéspedes</span>
           <strong>{huespedes.length}</strong>
         </div>
+      </section>
+
+      <section className="panel">
+        <h2>Hoy en recepción</h2>
+        <p><strong>Llegadas ({llegadas.length}):</strong>{' '}
+          {llegadas.length === 0 ? 'ninguna' : llegadas.map((r) => `${r.huespedNombre} (hab. ${r.habitacionNumero})`).join(', ')}</p>
+        <p><strong>Salidas ({salidas.length}):</strong>{' '}
+          {salidas.length === 0 ? 'ninguna' : salidas.map((r) => `${r.huespedNombre} (hab. ${r.habitacionNumero})`).join(', ')}</p>
       </section>
 
       <section className="panel">
@@ -86,4 +99,51 @@ export default function Inicio() {
       </section>
     </>
   )
+}
+
+function PanelHotel() {
+  const { datos, error, cargando, recargar } = useCarga(async () => {
+    const d = new Date()
+    const desde = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`
+    const sig = new Date(d.getFullYear(), d.getMonth() + 1, 1)
+    const hasta = `${sig.getFullYear()}-${String(sig.getMonth() + 1).padStart(2, '0')}-01`
+    const [reporte, habitaciones] = await Promise.all([api.reporteOcupacion(desde, hasta), api.habitaciones()])
+    return { reporte, habitaciones }
+  })
+  if (cargando) return <Cargando />
+  if (error || !datos) return <ErrorCarga mensaje={error} onReintentar={recargar} />
+  const { reporte, habitaciones } = datos
+  const cuenta = (e: string) => habitaciones.filter((h) => h.estado === e).length
+  return (
+    <>
+      <header className="encabezado">
+        <h1>Panel del administrador del hotel</h1>
+        <Link to="/reportes" className="boton">Ver reportes</Link>
+      </header>
+      <section className="tarjetas">
+        <div className="tarjeta-dato"><span>Ocupación del mes</span><strong>{reporte.porcentajeOcupacion}%</strong></div>
+        <div className="tarjeta-dato"><span>Disponibles</span><strong>{cuenta('DISPONIBLE')}</strong></div>
+        <div className="tarjeta-dato"><span>Reservadas</span><strong>{cuenta('RESERVADA')}</strong></div>
+        <div className="tarjeta-dato"><span>Ocupadas</span><strong>{cuenta('OCUPADA')}</strong></div>
+        <div className="tarjeta-dato"><span>En mantenimiento</span><strong>{cuenta('MANTENIMIENTO')}</strong></div>
+      </section>
+      <section className="panel">
+        <h2>Reservas del mes por estado</h2>
+        <table>
+          <thead><tr><th>Estado</th><th>Reservas</th></tr></thead>
+          <tbody>
+            {Object.entries(reporte.reservasPorEstado).map(([e, n]) => (<tr key={e}><td>{e}</td><td>{n}</td></tr>))}
+          </tbody>
+        </table>
+      </section>
+    </>
+  )
+}
+
+/** La pantalla de inicio cambia según el rol de quien inicia sesión. */
+export default function Inicio() {
+  const { usuario } = useAuth()
+  if (usuario?.rol === 'ADMIN_GENERAL') return <Sistema />
+  if (usuario?.rol === 'ADMINISTRADOR') return <PanelHotel />
+  return <PanelRecepcion />
 }
