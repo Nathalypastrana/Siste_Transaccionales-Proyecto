@@ -60,4 +60,34 @@ public class WhatsAppClient {
                 .retrieve()
                 .toBodilessEntity();
     }
+
+    /**
+     * Envía un mensaje de plantilla aprobada (necesario para escribirle a un cliente que no ha escrito en las
+     * últimas 24 horas). Los parámetros reemplazan {{1}}, {{2}}... del cuerpo. Lanza excepción si Meta rechaza.
+     */
+    public void enviarPlantilla(String destino, String plantilla, String idioma, java.util.List<String> parametros) {
+        if (!configurado()) {
+            log.warn("WhatsApp no está configurado; plantilla para {} no enviada.", com.hotel.reservas.util.Telefonos.enmascarar(destino));
+            return;
+        }
+        ObjectNode cuerpo = mapper.createObjectNode();
+        cuerpo.put("messaging_product", "whatsapp");
+        cuerpo.put("to", destino);
+        cuerpo.put("type", "template");
+        ObjectNode t = cuerpo.putObject("template");
+        t.put("name", plantilla);
+        t.putObject("language").put("code", idioma);
+        var cuerpoParametros = t.putArray("components").addObject().put("type", "body").putArray("parameters");
+        for (String p : parametros) {
+            cuerpoParametros.addObject().put("type", "text").put("text", p);
+        }
+
+        http.post()
+                .uri("/{id}/messages", phoneNumberId)
+                .header("Authorization", "Bearer " + accessToken)
+                .header("content-type", "application/json")
+                .body(cuerpo)
+                .retrieve()
+                .toBodilessEntity();
+    }
 }

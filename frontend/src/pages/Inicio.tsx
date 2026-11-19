@@ -5,6 +5,7 @@ import { useCarga } from '../hooks'
 import { fechaCorta, hoy, moneda } from '../utils'
 import { useAuth } from '../auth'
 import Sistema from './Sistema'
+import AlertaTarifas from '../components/AlertaTarifas'
 
 function PanelRecepcion() {
   const { datos, error, cargando, recargar } = useCarga(async () => {
@@ -120,6 +121,7 @@ function PanelHotel() {
         <h1>Panel del administrador del hotel</h1>
         <Link to="/reportes" className="boton">Ver reportes</Link>
       </header>
+      <AlertaTarifas />
       <section className="tarjetas">
         <div className="tarjeta-dato"><span>Ocupación del mes</span><strong>{reporte.porcentajeOcupacion}%</strong></div>
         <div className="tarjeta-dato"><span>Disponibles</span><strong>{cuenta('DISPONIBLE')}</strong></div>

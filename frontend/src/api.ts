@@ -16,6 +16,7 @@ import type {
   EstadoSistema,
   TipoPublico,
   RegistroAuditoria,
+  AlertaTarifa,
 } from './types'
 
 const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
@@ -141,6 +142,9 @@ export const api = {
     const texto = q.toString()
     return request<RegistroAuditoria[]>('/api/auditoria' + (texto ? `?${texto}` : ''))
   },
+  alertasTarifa: () => request<AlertaTarifa[]>('/api/tarifas/alertas'),
+  ejecutarTarea: (nombre: 'recordatorios' | 'resumen') =>
+    request<{ mensaje: string }>(`/api/sistema/tareas/${nombre}`, json('POST')),
   estadoSistema: () => request<EstadoSistema>('/api/sistema/estado'),
   usuarios: () => request<UsuarioAdmin[]>('/api/usuarios'),
   guardarUsuario: (id: number | null, data: unknown) =>

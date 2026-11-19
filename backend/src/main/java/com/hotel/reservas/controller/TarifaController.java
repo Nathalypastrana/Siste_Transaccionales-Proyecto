@@ -2,6 +2,8 @@ package com.hotel.reservas.controller;
 
 import com.hotel.reservas.dto.TarifaRequest;
 import com.hotel.reservas.dto.TarifaResponse;
+import com.hotel.reservas.dto.AlertaTarifa;
+import com.hotel.reservas.service.AlertaTarifaService;
 import com.hotel.reservas.service.TarifaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,13 @@ import java.util.List;
 public class TarifaController {
 
     private final TarifaService service;
+    private final AlertaTarifaService alertas;
+
+    /** Tipos de habitación que se quedarán sin tarifa vigente en los próximos días. */
+    @GetMapping("/alertas")
+    public List<AlertaTarifa> alertas() {
+        return alertas.calcular();
+    }
 
     @GetMapping
     public List<TarifaResponse> listar() {

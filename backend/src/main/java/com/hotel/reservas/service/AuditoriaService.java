@@ -40,6 +40,13 @@ public class AuditoriaService {
     private final AuditoriaRepository repository;
     private final PlatformTransactionManager transacciones;
 
+    /** ¿Ya se envió con éxito un aviso de ese tipo para esa reserva en las últimas horas? */
+    public boolean avisoYaEnviado(String tipo, Integer reservaId, int horas) {
+        return repository.existsByAccionAndEntidadAndEntidadIdAndDetalleStartingWithAndFechaAfter(
+                "NOTIFICACION_ENVIADA", "Reserva", String.valueOf(reservaId), tipo + " - ",
+                java.time.LocalDateTime.now().minusHours(horas));
+    }
+
     /** Registra una acción hecha por el usuario de la sesión actual. */
     public void registrar(String accion, String entidad, Object entidadId, String detalle) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

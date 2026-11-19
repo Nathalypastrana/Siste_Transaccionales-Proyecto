@@ -15,6 +15,18 @@ public final class Telefonos {
         return digitos.length() > 10 ? digitos.substring(digitos.length() - 10) : digitos;
     }
 
+    /**
+     * Número en el formato que exige WhatsApp (indicativo de país + número, solo dígitos). Si el huésped guardó
+     * un número de 10 dígitos se le antepone el indicativo (57 = Colombia). Devuelve "" si no hay número.
+     */
+    public static String paraWhatsApp(String telefono, String indicativoPais) {
+        String d = telefono == null ? "" : telefono.replaceAll("\\D", "");
+        if (d.isEmpty()) {
+            return "";
+        }
+        return d.length() == 10 ? indicativoPais + d : d;
+    }
+
     /** Para los registros del sistema: deja visibles solo los 4 últimos dígitos. */
     public static String enmascarar(String telefono) {
         String d = telefono == null ? "" : telefono.replaceAll("\\D", "");

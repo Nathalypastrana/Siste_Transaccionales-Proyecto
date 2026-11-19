@@ -23,6 +23,8 @@ import com.hotel.reservas.repository.TarifaRepository;
 import com.hotel.reservas.repository.UsuarioRepository;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import com.hotel.reservas.notificacion.EventoReserva;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -57,6 +59,7 @@ public class ReservaService {
     private final ComprobanteReservaRepository comprobanteRepository;
     private final ActualizadorEstadoHabitacion estadoHabitaciones;
     private final AuditoriaService auditoria;
+    private final ApplicationEventPublisher eventos;
 
     /**
      * Crear reserva (RF 04 / CU-10) en una sola transacción (atomicidad):
@@ -103,6 +106,7 @@ public class ReservaService {
         auditoria.registrar("RESERVA_CREADA", "Reserva", reserva.getId(), "Hab " + habitacion.getNumero() + ", "
                 + reserva.getFechaEntrada() + " a " + reserva.getFechaSalida() + ", total " + reserva.getValorTotal()
                 + ", comprobante " + comprobante.getNumeroComprobante());
+        eventos.publishEvent(evento(EventoReserva.Tipo.CREADA, reserva, comprobante.getNumeroComprobante()));
         return ReservaResponse.de(reserva);
     }
 
@@ -174,6 +178,7 @@ public class ReservaService {
         }
         auditoria.registrar("RESERVA_MODIFICADA", "Reserva", reserva.getId(), "Antes: " + antes + ". Ahora: Hab "
                 + nueva.getNumero() + ", " + entrada + " a " + salida + ", total " + reserva.getValorTotal());
+        eventos.publishEvent(evento(EventoReserva.Tipo.MODIFICADA, reserva, codigoDe(reserva)));
         return ReservaResponse.de(reserva);
     }
 
@@ -193,6 +198,7 @@ public class ReservaService {
         estadoHabitaciones.recalcular(reserva.getHabitacion());
         auditoria.registrar("RESERVA_CANCELADA", "Reserva", reserva.getId(), "Hab "
                 + reserva.getHabitacion().getNumero() + ", " + reserva.getFechaEntrada() + " a " + reserva.getFechaSalida());
+        eventos.publishEvent(evento(EventoReserva.Tipo.CANCELADA, reserva, codigoDe(reserva)));
         return ReservaResponse.de(reserva);
     }
 
@@ -296,6 +302,18 @@ public class ReservaService {
             throw new RecursoNoEncontradoException("No hay tarifa vigente para esa fecha.");
         }
         return tarifas.get(0);
+    }
+
+    private String codigoDe(Reserva reserva) {
+        return comprobanteRepository.findByReservaId(reserva.getId())
+                .map(ComprobanteReserva::getNumeroComprobante).orElse(null);
+    }
+
+    /** Copia de los datos que necesita la notificación (se envía solo si la transacción se confirma). */
+    private EventoReserva evento(EventoReserva.Tipo tipo, Reserva r, String codigo) {
+        return new EventoReserva(tipo, r.getId(), r.getHuesped().getNombres(), r.getHuesped().getTelefono(),
+                r.getHuesped().getCorreo(), r.getHabitacion().getNumero(), r.getFechaEntrada(), r.getFechaSalida(),
+                r.getValorTotal(), codigo);
     }
 
     private ComprobanteReserva crearComprobante(Reserva reserva) {

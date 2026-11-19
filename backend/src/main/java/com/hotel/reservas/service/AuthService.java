@@ -42,7 +42,7 @@ public class AuthService {
 
     public AuthService(UsuarioRepository usuarioRepository, PasswordEncoder encoder, JwtService jwtService,
                        AuditoriaService auditoria,
-                       @Value("${seguridad.migrar-claves-planas:true}") boolean migrarClavesPlanas) {
+                       @Value("${seguridad.migrar-claves-planas:false}") boolean migrarClavesPlanas) {
         this.usuarioRepository = usuarioRepository;
         this.encoder = encoder;
         this.jwtService = jwtService;

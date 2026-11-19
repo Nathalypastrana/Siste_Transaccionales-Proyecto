@@ -26,14 +26,15 @@ public class CorreoService {
         this.desde = desde;
     }
 
-    public void enviar(String para, String asunto, String texto) {
+    /** Devuelve true si el correo se envió; false si no hay SMTP configurado o el envío falló. */
+    public CompletableFuture<Boolean> enviar(String para, String asunto, String texto) {
         JavaMailSender sender = remitente.getIfAvailable();
         if (sender == null) {
             log.warn("SMTP no configurado (SPRING_MAIL_HOST). Correo NO enviado (solo desarrollo). Para: {} | {} | {}",
                     para, asunto, texto);
-            return;
+            return CompletableFuture.completedFuture(false);
         }
-        CompletableFuture.runAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             try {
                 SimpleMailMessage m = new SimpleMailMessage();
                 if (!desde.isBlank()) {
@@ -43,8 +44,10 @@ public class CorreoService {
                 m.setSubject(asunto);
                 m.setText(texto);
                 sender.send(m);
+                return true;
             } catch (Exception e) {
                 log.error("No se pudo enviar el correo de '{}': {}", asunto, e.getMessage());
+                return false;
             }
         });
     }

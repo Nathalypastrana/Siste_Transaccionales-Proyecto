@@ -51,9 +51,9 @@ Ejemplo con un contenedor Docker llamado `sqlserver`:
 
 ```
 docker cp database/schema.sql sqlserver:/tmp/schema.sql
-docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '<clave>' -C -i /tmp/schema.sql
+docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -i /tmp/schema.sql
 docker cp database/datos_prueba.sql sqlserver:/tmp/datos_prueba.sql
-docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '<clave>' -C -i /tmp/datos_prueba.sql
+docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -i /tmp/datos_prueba.sql
 ```
 
 (En algunas imágenes la ruta es `/opt/mssql-tools/bin/sqlcmd`.)
@@ -66,11 +66,11 @@ de entorno, para no guardar claves en el repositorio:
 | Variable | Valor por defecto |
 |----------|-------------------|
 | `DB_URL` | `jdbc:sqlserver://localhost:1433;databaseName=ReservasHotelDB;encrypt=true;trustServerCertificate=true` |
-| `DB_USER` | `sa` |
-| `DB_PASSWORD` | (definir siempre) |
+| `DB_USER` | (obligatoria; recomendado `hotel_app`, ver `database/crear_usuario_aplicacion.sql`) |
+| `DB_PASSWORD` | (obligatoria, sin valor por defecto) |
 
 ```
-export DB_USER='sa'
+export DB_USER='hotel_app'
 export DB_PASSWORD='<clave>'
 ```
 
@@ -197,3 +197,15 @@ seguridad y la conexión con WhatsApp real están en [`docs/asistente-ia.md`](do
   - Para enviar correos reales define `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD`, `SMTP_FROM` y `APP_URL` (URL del frontend, p. ej. `https://hotel.ejemplo.com`).
   - Sin `SPRING_MAIL_HOST` el correo no se envía y el enlace se escribe en el log del backend (solo para desarrollo).
 - **Auditoría** (solo administrador general, pantalla *Auditoría*, `GET /api/auditoria`): registra inicios de sesión (correctos, fallidos, bloqueados), renovaciones, recuperación de clave, y creación/cambios de reservas, comprobantes, habitaciones, tipos, tarifas y usuarios, con usuario, fecha, detalle (antes/después) e IP. Nunca guarda contraseñas ni tokens. Vuelve a ejecutar `database/schema.sql` (crea `Auditoria` y `RecuperacionClave`).
+
+## Notificaciones de reservas
+
+Al crear, modificar o cancelar una reserva se avisa al huésped por **correo, WhatsApp o ambos** (`NOTIFICACIONES_CANALES`). Se envía solo tras confirmar la reserva y cada intento queda en Auditoría. Configuración paso a paso en `docs/notificaciones.md`.
+
+Además: recordatorio de llegada al huésped (9:00), resumen diario a los administradores (7:00) y alerta de tarifas por vencer. Ver `docs/notificaciones.md`.
+
+## Evidencias de pruebas y seguridad de credenciales
+
+- `docs/informe-pruebas.md` (informe), `docs/plan-pruebas.md` (38 casos) y `docs/evidencia-persistencia.md` (cómo comprobar interfaz → base de datos).
+- `./pruebas/evidencia.sh <n.º de reserva>` ejecuta `pruebas/consultas_evidencia.sql` y guarda el resultado en `evidencias/`; `./pruebas/evidencia_e2e.sh` hace crear → modificar → cancelar y consulta la BD en cada paso.
+- Credenciales: `docs/seguridad-credenciales.md`, `.env.example`, `database/asegurar_credenciales.sql`, `database/crear_usuario_aplicacion.sql`. No hay secretos en el repositorio.

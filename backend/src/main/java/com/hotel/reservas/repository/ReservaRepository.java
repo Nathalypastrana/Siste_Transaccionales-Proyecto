@@ -83,6 +83,26 @@ public interface ReservaRepository extends JpaRepository<Reserva, Integer>, JpaS
 
     List<Reserva> findByEstadoAndFechaSalidaLessThanEqual(EstadoReserva estado, LocalDate fecha);
 
+    /** Reservas con esos estados cuya entrada es la fecha dada (con huésped y habitación cargados). */
+    @Query("""
+            select r from Reserva r
+            join fetch r.huesped
+            join fetch r.habitacion
+            where r.fechaEntrada = :fecha and r.estado in :estados
+            order by r.id
+            """)
+    List<Reserva> entrantesEl(@Param("fecha") LocalDate fecha, @Param("estados") Collection<EstadoReserva> estados);
+
+    /** Reservas con esos estados cuya salida es la fecha dada (con huésped y habitación cargados). */
+    @Query("""
+            select r from Reserva r
+            join fetch r.huesped
+            join fetch r.habitacion
+            where r.fechaSalida = :fecha and r.estado in :estados
+            order by r.id
+            """)
+    List<Reserva> salientesEl(@Param("fecha") LocalDate fecha, @Param("estados") Collection<EstadoReserva> estados);
+
     /** Reservas (de cualquier estado) que se cruzan con el periodo [desde, hasta). */
     @Query("""
             select r from Reserva r

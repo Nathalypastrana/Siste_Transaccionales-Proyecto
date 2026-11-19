@@ -1,5 +1,6 @@
 package com.hotel.reservas.scheduling;
 
+import com.hotel.reservas.notificacion.AvisosProgramadosService;
 import com.hotel.reservas.service.ReservaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,10 +16,31 @@ import org.springframework.stereotype.Component;
 public class TareasProgramadas {
 
     private final ReservaService reservaService;
+    private final AvisosProgramadosService avisos;
 
     @Scheduled(cron = "0 5 0 * * *", zone = "America/Bogota")
     public void diaria() {
         ejecutar();
+    }
+
+    /** 7:00 a. m.: resumen del día (llegadas, salidas, ocupación y tarifas por vencer) para los administradores. */
+    @Scheduled(cron = "0 0 7 * * *", zone = "America/Bogota")
+    public void resumenDiario() {
+        try {
+            avisos.resumenDiario();
+        } catch (Exception e) {
+            log.error("No se pudo enviar el resumen diario: {}", e.getMessage());
+        }
+    }
+
+    /** 9:00 a. m.: recordatorio de llegada a los huéspedes que entran mañana. */
+    @Scheduled(cron = "0 0 9 * * *", zone = "America/Bogota")
+    public void recordatorios() {
+        try {
+            avisos.recordatoriosDeLlegada(false);
+        } catch (Exception e) {
+            log.error("No se pudieron enviar los recordatorios de llegada: {}", e.getMessage());
+        }
     }
 
     @EventListener(ApplicationReadyEvent.class)

@@ -21,11 +21,14 @@ VALUES
 GO
 
 /* USUARIOS */
+/* Cuentas de ejemplo INACTIVAS y con hash BCrypt de una clave aleatoria que nadie conoce: sirven solo para las
+   llaves foráneas de las reservas de ejemplo. El acceso real se crea con ADMIN_CORREO / ADMIN_PASSWORD o desde
+   Administración > Usuarios. Nunca guardes contraseñas en texto plano en el repositorio. */
 INSERT INTO Usuario
 (nombre, correo, password, rol, activo)
 VALUES
-('Administrador', 'admin@hotel.com', 'Password123', 'ADMINISTRADOR', 1),
-('Recepcionista', 'recepcion@hotel.com', 'Password123', 'RECEPCIONISTA', 1);
+('Administrador', 'admin@hotel.com', '$2b$10$DgbtflTZsKqK9x/jXjrAvegjhq.uzD6H33ODehT5jwr34RbBkj3Qi', 'ADMINISTRADOR', 0),
+('Recepcionista', 'recepcion@hotel.com', '$2b$10$DgbtflTZsKqK9x/jXjrAvegjhq.uzD6H33ODehT5jwr34RbBkj3Qi', 'RECEPCIONISTA', 0);
 GO
 
 /* HUÉSPEDES */

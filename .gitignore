@@ -1,5 +1,23 @@
+# Sistema y editores
 .DS_Store
 .vscode/
+.idea/
+
+# Secretos: nunca se suben
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+application-local.properties
+application-secret*.properties
+
+# Compilados y dependencias
+backend/target/
+frontend/node_modules/
+frontend/dist/
+node_modules/
 __pycache__/
 *.pyc
-.env
+*.log
+*.pid

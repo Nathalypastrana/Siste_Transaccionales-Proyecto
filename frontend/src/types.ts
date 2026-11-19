@@ -151,6 +151,8 @@ export interface EstadoSistema {
   autorizacionesVigentes: number
   autorizacionesRevocadas: number
   jwtSecretoDefinido: boolean
+  correoConfigurado: boolean
+  canalesNotificacion: string
 }
 
 export const ETIQUETA_ROL: Record<Rol, string> = {
@@ -177,4 +179,11 @@ export interface RegistroAuditoria {
   entidadId: string | null
   detalle: string | null
   ip: string | null
+}
+
+export interface AlertaTarifa {
+  tipo: string
+  primeraFechaSinTarifa: string
+  diasRestantes: number
+  sinTarifaHoy: boolean
 }

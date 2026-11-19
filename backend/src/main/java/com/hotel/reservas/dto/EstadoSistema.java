@@ -16,6 +16,8 @@ public record EstadoSistema(
         String versionAviso,
         long autorizacionesVigentes,
         long autorizacionesRevocadas,
-        boolean jwtSecretoDefinido
+        boolean jwtSecretoDefinido,
+        boolean correoConfigurado,
+        String canalesNotificacion
 ) {
 }

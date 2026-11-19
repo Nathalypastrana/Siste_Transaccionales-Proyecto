@@ -4,10 +4,10 @@ import { Alerta, Cargando, ErrorCarga } from '../components/Estado'
 import { useToast } from '../components/Toast'
 import { useCarga } from '../hooks'
 import { useAuth } from '../auth'
+import AlertaTarifas from '../components/AlertaTarifas'
 import { ETIQUETA_ROL } from '../types'
 import type { EstadoHabitacion, Rol } from '../types'
 import { fechaCorta, moneda } from '../utils'
-import LogoHotel from '../components/LogoHotel'
 
 type Pestana = 'tipos' | 'habitaciones' | 'tarifas' | 'usuarios'
 
@@ -394,6 +394,7 @@ export default function Administracion() {
       {pestana === 'habitaciones' && (
         <HabitacionesAdmin soloEstado={false} onCambiarTarifa={(id) => { setTipoTarifa(String(id)); setPestana('tarifas') }} />
       )}
+      {pestana === 'tarifas' && <AlertaTarifas />}
       {pestana === 'tarifas' && <Tarifas key={tipoTarifa} tipoInicial={tipoTarifa} />}
       {pestana === 'usuarios' && <Usuarios />}
     </>

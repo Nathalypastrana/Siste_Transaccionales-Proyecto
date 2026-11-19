@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { api } from '../api'
+import AlertaTarifas from '../components/AlertaTarifas'
 import { Cargando, ErrorCarga } from '../components/Estado'
 import { useCarga } from '../hooks'
 import { ETIQUETA_ROL } from '../types'
@@ -19,6 +21,20 @@ function Fila({ texto, ok, detalle }: { texto: string; ok: boolean; detalle?: st
 /** Vista del administrador general del programa: estado y configuración (sin secretos ni datos personales). */
 export default function Sistema() {
   const { datos: s, error, cargando, recargar } = useCarga(api.estadoSistema)
+  const [ejecutando, setEjecutando] = useState(false)
+  const [resultado, setResultado] = useState<string | null>(null)
+
+  async function ejecutar(nombre: 'recordatorios' | 'resumen') {
+    setEjecutando(true)
+    setResultado(null)
+    try {
+      setResultado((await api.ejecutarTarea(nombre)).mensaje)
+    } catch (e) {
+      setResultado(e instanceof Error ? e.message : 'No se pudo ejecutar la tarea.')
+    } finally {
+      setEjecutando(false)
+    }
+  }
   return (
     <>
       <header className="encabezado">
@@ -29,6 +45,7 @@ export default function Sistema() {
       {!cargando && (error || !s) && <ErrorCarga mensaje={error} onReintentar={recargar} />}
       {!cargando && s && (
         <>
+          <AlertaTarifas />
           <section className="tarjetas">
             {(Object.keys(s.usuariosActivosPorRol) as Rol[]).map((r) => (
               <div className="tarjeta-dato" key={r}>
@@ -47,10 +64,33 @@ export default function Sistema() {
               <tbody>
                 <Fila texto="Clave de sesiones (JWT_SECRET)" ok={s.jwtSecretoDefinido} detalle={s.jwtSecretoDefinido ? '' : 'Usa una clave temporal: las sesiones se pierden al reiniciar'} />
                 <Fila texto="Consultor virtual" ok={s.modeloConfigurado} detalle={`Proveedor: ${s.proveedorIa}`} />
+                <Fila texto="Correo (SMTP)" ok={s.correoConfigurado} detalle={s.correoConfigurado ? '' : 'Sin SMTP: los correos no salen (solo quedan en el log)'} />
                 <Fila texto="WhatsApp (envío)" ok={s.whatsappConfigurado} detalle={s.whatsappConfigurado ? '' : 'Faltan token o número de WhatsApp'} />
                 <Fila texto="Simulador del consultor" ok={!s.simuladorHabilitado} detalle={s.simuladorHabilitado ? 'Activo: apágalo en producción' : 'Apagado'} />
               </tbody>
             </table>
+          </section>
+
+          <section className="panel">
+            <h2>Notificaciones de reservas</h2>
+            <p>Canales activos: <strong>{s.canalesNotificacion || 'ninguno'}</strong>. Se avisa al huésped al crear, modificar o cancelar una reserva.</p>
+          </section>
+
+          <section className="panel">
+            <h2>Avisos programados</h2>
+            <p>
+              Todos los días: <strong>7:00</strong> resumen del día a los administradores y <strong>9:00</strong>{' '}
+              recordatorio de llegada a los huéspedes que entran mañana. Puedes ejecutarlos ahora para probarlos.
+            </p>
+            <div className="acciones">
+              <button className="boton-secundario" disabled={ejecutando} onClick={() => ejecutar('resumen')}>
+                Enviar resumen ahora
+              </button>
+              <button className="boton-secundario" disabled={ejecutando} onClick={() => ejecutar('recordatorios')}>
+                Enviar recordatorios ahora
+              </button>
+            </div>
+            {resultado && <p className="ayuda" role="status">{resultado}</p>}
           </section>
 
           <section className="panel">
