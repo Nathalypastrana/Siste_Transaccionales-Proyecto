@@ -1,3 +1,8 @@
+-- Requerido por los índices filtrados (UX_Huesped_Correo, UX_Huesped_Telefono): sqlcmd usa QUOTED_IDENTIFIER OFF por defecto
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+GO
+
 /* DATOS DE DEMOSTRACIÓN (simulados): 50 huéspedes, hotel completo de 15 habitaciones y 5 tipos, tarifas 2026-2027 y reservas con comprobantes.
    Personas y contactos INVENTADOS: los teléfonos/correos no corresponden a nadie real a propósito.
    Se inserta directo en SQL, por lo que NO dispara notificaciones. Si luego reservas por la interfaz a estos huéspedes,

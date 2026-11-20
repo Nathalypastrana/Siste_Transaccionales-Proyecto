@@ -1,3 +1,8 @@
+-- Requerido por los índices filtrados (UX_Huesped_Correo, UX_Huesped_Telefono): sqlcmd usa QUOTED_IDENTIFIER OFF por defecto
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+GO
+
 /* RESTRICCIONES DE UNICIDAD PARA HUÉSPEDES
    La base de datos garantiza (además del backend) que no existan dos huéspedes con:
      - el mismo número de documento (sin importar el tipo),

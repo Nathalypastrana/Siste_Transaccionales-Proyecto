@@ -1,7 +1,7 @@
 # Plan de pruebas y resultados
 
 **Versión (commit):** `________` · **Fecha:** `________` · **Ejecutó:** `________` · **Entorno:** macOS, Java 17, SQL Server en Docker, Node `____`.
-Informe consolidado: `informe-pruebas.md`. Evidencia de persistencia UI → BD: `evidencia-persistencia.md`.
+Informe consolidado: `informe-pruebas.md`. Los casos también están en Testiny (importar `docs/testiny/casos-prueba.csv`). Evidencia de persistencia UI → BD: `evidencia-persistencia.md`.
 Para cada caso anota en *Evidencia* el nombre de la captura y, si cambia datos, la sección de `pruebas/consultas_evidencia.sql` que lo confirma.
 
 Marca cada caso con ✔ o ✘ al ejecutarlo y guarda una captura con el nombre del caso (por ejemplo `P05.png`).
@@ -33,22 +33,29 @@ Usa fechas futuras libres. `{H}` es una habitación disponible.
 | P21 | Auditoría | Revisar *Auditoría* tras P07, P12, P13, P19 | Aparece cada acción con usuario, fecha, antes/después, IP | | |
 | P22 | Concurrencia | `./pruebas/concurrencia.sh 10 {id} 2027-03-10 2027-03-12` | **1** respuesta 201 y **9** 409; `RESULTADO: OK` | | |
 | P23 | Concurrencia en BD | `verificar_flujo.sql`, consulta 3 | Sin filas (ninguna reserva solapada) | | |
-| P24 | Rendimiento (RNF 05) | Cargar `datos_rendimiento.sql` y correr `pruebas/rendimiento.py` | Todos los escenarios dentro del umbral | | |
+| P24 | Rendimiento (RNF 05) | `pruebas/p24_rendimiento.sh` (carga 100 hab. + 10.000 reservas, corre `rendimiento.py` y limpia) | Todos los escenarios dentro del umbral | 1.ª corrida: falla por pool de conexiones agotado (p95 mixta 5,3 s, 57 errores); se subió `maximum-pool-size` a 40. 2.ª corrida: mixta p95 0,414 s, 0 errores; concurrencia 1 reserva en 100 %. **Aprobado** | `evidencias/rendimiento_2026-11-20_1403.txt` (falla) y `rendimiento_2026-11-20_1412.txt` (cumple) |
 | P25 | Sesión de 2 h | Arrancar con `JWT_MINUTOS=6` y esperar | Aviso a los 10 min (aquí al inicio), ventana de renovación a los 5, cierre al vencer | | |
 | P26 | Recuperar contraseña | "¿Olvidaste tu contraseña?" → enlace del log | Cambia la clave; el enlace no sirve una segunda vez | | |
-| P27 | IA: consentimiento | Primer mensaje al consultor | Pide `ACEPTO`; sin aceptar no responde con datos | | |
+| P27 | IA: consentimiento | Primer mensaje al consultor | Pide `ACEPTO`; sin aceptar no responde con datos | **Aprobado**: sin autorización solo muestra el aviso; con ACEPTO responde disponibilidad; tras REVOCAR vuelve al aviso. `AutorizacionDatos` registra fecha, versión y revocación | Capturas del simulador (Nicolás, 3156929115) y consulta SQL |
 | P28 | IA: disponibilidad | "¿Qué hay para 2 personas del … al …?" | Precio y total iguales a *Nueva reserva* | | |
 | P29 | IA: mis reservas | Pedir el estado de la reserva dando el `CR-…` | Muestra solo reservas de ese huésped; con código ajeno o inventado no muestra nada | | |
 | P30 | IA: derivación | "Quiero cambiar mi reserva" | Deriva a recepción y no modifica nada | | |
 | P31 | IA: número no registrado | Mismo mensaje desde un teléfono sin huésped | No muestra reservas de nadie | | |
-| P32 | IA: revocar | Escribir `REVOCAR` | Confirma; el siguiente mensaje vuelve a pedir autorización | | |
+| P32 | IA: revocar | Escribir `REVOCAR` | Confirma; el siguiente mensaje vuelve a pedir autorización | **Aprobado** (ejecutado junto con P27): `revocada = 1` con su fecha | Captura de REVOCAR y consulta SQL |
 | P33 | Notificación por correo | Crear, modificar y cancelar una reserva de un huésped con tu correo | Llegan 3 correos (confirmada, modificada, cancelada) con habitación, fechas, total y código | | |
 | P34 | Notificación por WhatsApp | Lo mismo con un huésped cuyo teléfono es tu celular verificado | Llegan 3 mensajes de WhatsApp | | |
 | P35 | Registro de notificaciones | Revisar *Auditoría* | Aparecen `NOTIFICACION_ENVIADA` (canal y destino enmascarado); un huésped sin correo/teléfono genera `NOTIFICACION_OMITIDA` | | |
 | P36 | Recordatorio de llegada | Crear una reserva con entrada mañana; en *Sistema* pulsar "Enviar recordatorios ahora" | Llega el aviso "Te esperamos mañana…" por correo/WhatsApp; Auditoría muestra `NOTIFICACION_ENVIADA` con `RECORDATORIO` | | |
 | P37 | Resumen diario | En *Sistema* pulsar "Enviar resumen ahora" | Los administradores reciben el correo con ocupación, llegadas y salidas de hoy | | |
 | P38 | Alerta de tarifas | Desactivar o dejar vencer la tarifa de un tipo; abrir el inicio del administrador del hotel | Aparece el aviso rojo con el tipo y la fecha desde la que falta tarifa; al corregirla desaparece | | |
+| P39 | Huésped duplicado | Registrar un huésped con documento, nombre completo, correo o teléfono ya existentes | Marca el campo repetido; la API responde 409 y no se crea | | |
+| P40 | Editar huésped | En Huéspedes pulsar *Editar*, cambiar el teléfono y guardar | Se guarda; Auditoría registra `HUESPED_MODIFICADO` con los campos cambiados | | |
+| P41 | Unicidad en la BD | Ejecutar `database/unicidad_huespedes.sql` e insertar en SQL un huésped con un correo existente | Se crean los índices `UX_Huesped_*`; el INSERT falla | **Aprobado** tras 2 hallazgos: (1) el script detectó 2 nombres duplicados previos y se detuvo sin crear índices (se corrigieron); (2) los índices filtrados fallaban en `sqlcmd` por `QUOTED_IDENTIFIER OFF` (se agregó `SET QUOTED_IDENTIFIER ON` a los scripts). Luego: 4 índices creados y el INSERT con correo repetido falla (Msg 2601, `UX_Huesped_Correo`) | Salidas de terminal de las 3 corridas |
+| P42 | Buscador de huésped | En *Nueva reserva* escribir parte del nombre, documento o teléfono | Aparecen solo coincidencias; se elige con clic o teclado | | |
+| P43 | Búsqueda, filtros y paginación | Usar buscador, filtros y páginas en Huéspedes, Reservas, Habitaciones, Administración y Auditoría | Las listas se filtran y paginan correctamente | | |
+| P44 | Firma del webhook | `curl` POST a `/api/whatsapp/twilio` sin firma; verificación con token falso | "Firma inválida" (403) y "Verificación rechazada"; un mensaje firmado responde 200 | **Aprobado** con `pruebas/p44_firma_webhook.sh`: 6/6 (sin firma, firma falsa y cuerpo alterado → 403; firmado → 200 con TwiML; Meta token falso y POST sin firma → 403) | `evidencias/p44_firma_webhook_2026-11-20_1517.txt` y log del backend |
+| P45 | Administrador general | Entrar como administrador general | Ve todas las funciones (incluidas las de recepción); inicio con 3 pestañas | | |
 
 ## Resumen para el informe
-- Casos ejecutados: ___ de 38. Aprobados: ___. Fallidos: ___ (describir y cómo se corrigieron).
+- Casos ejecutados: ___ de 45. Aprobados: ___. Fallidos: ___ (describir y cómo se corrigieron).
 - Fecha, versión del código (commit) y equipo en el que se ejecutó.

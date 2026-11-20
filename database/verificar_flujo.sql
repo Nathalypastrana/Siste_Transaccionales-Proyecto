@@ -1,3 +1,8 @@
+-- Requerido por los índices filtrados (UX_Huesped_Correo, UX_Huesped_Telefono): sqlcmd usa QUOTED_IDENTIFIER OFF por defecto
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+GO
+
 /*
   Consultas de verificación (solo lectura). Sirven como evidencia de que lo
   hecho desde la interfaz o la API quedó guardado en la base de datos.

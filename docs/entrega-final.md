@@ -42,7 +42,18 @@ Las salidas de texto quedan en `evidencias/` al ejecutar los scripts; las captur
 | E14 | Seguridad: bloqueo tras 5 intentos fallidos | Login | `E14_ui.png` + Auditoría `LOGIN_BLOQUEADO` |
 | E15 | Seguridad del webhook (firma) | `curl` sin firma → `Firma inválida`; token falso → `Verificación rechazada` | `E15_terminal.png` |
 
-Resultados detallados: [`plan-pruebas.md`](plan-pruebas.md) (38 casos) e [`informe-pruebas.md`](informe-pruebas.md).
+Resultados detallados: [`plan-pruebas.md`](plan-pruebas.md) (45 casos) e [`informe-pruebas.md`](informe-pruebas.md).
+
+### Gestión de las pruebas en Testiny
+Los 45 casos se gestionan en **Testiny** (herramienta de gestión de pruebas): se importan desde
+[`testiny/casos-prueba.csv`](testiny/casos-prueba.csv), organizados en 8 carpetas, y se ejecutan en una *test run*
+donde cada caso queda como aprobado o fallido, con comentario y captura. El reporte de la ejecución se exporta en PDF
+y su enlace compartido se entrega en Canvas.
+
+| Recurso | Enlace |
+|---------|--------|
+| Ejecución (test run) en Testiny | _(pegar aquí el enlace compartido de la ejecución)_ |
+| Reporte exportado | `evidencias/testiny-reporte.pdf` |
 
 ## 4. Servicio de inteligencia artificial: consultor virtual
 

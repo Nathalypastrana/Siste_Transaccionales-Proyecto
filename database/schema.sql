@@ -1,3 +1,8 @@
+-- Requerido por los índices filtrados (UX_Huesped_Correo, UX_Huesped_Telefono): sqlcmd usa QUOTED_IDENTIFIER OFF por defecto
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+GO
+
 /*
   SCRIPT DE CREACIÓN - ReservasHotelDB
   Es NO DESTRUCTIVO: solo crea la base, las tablas y el índice si no existen.

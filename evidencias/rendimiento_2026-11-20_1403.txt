@@ -1,0 +1,22 @@
+P24 - Prueba de rendimiento · 2026-11-20 14:04 · commit 1f6e9d3
+API: http://localhost:8080   Habitaciones de prueba: 100   Fechas desde 2026-12-24
+
+1. Consulta de disponibilidad (1 sesión, 30 repeticiones)
+  OK  disponibilidad                     n=30  prom=0.100s  p95=0.187s  max=0.206s
+
+2. Crear, modificar y cancelar (1 sesión, 30 repeticiones de cada operación)
+  OK  crear reserva                      n=30  prom=0.021s  p95=0.035s  max=0.036s
+  OK  modificar reserva                  n=30  prom=0.021s  p95=0.036s  max=0.036s
+  OK  cancelar reserva                   n=30  prom=0.018s  p95=0.037s  max=0.046s
+
+3. Reservas simultáneas sobre la misma habitación y fechas
+  OK  2 sesiones x30: exactamente 1 reserva en 30/30   max=0.039s
+  FALLA 10 sesiones x10: exactamente 1 reserva en 10/10   max=5.424s
+
+4. Carga mixta (20 sesiones durante 60 s: consultas y reservas en habitaciones distintas)
+  FALLA mixta                              n=1186 prom=1.080s  p95=5.298s  max=10.350s
+  errores de servidor o sin respuesta: 57   respuestas no previstas: 0
+
+Verifica además con database/verificar_flujo.sql que no haya reservas activas superpuestas (debe dar 0 filas).
+
+RESULTADO GLOBAL: NO cumple algún umbral: documenta la causa y el ajuste.

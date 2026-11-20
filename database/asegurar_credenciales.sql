@@ -1,3 +1,8 @@
+-- Requerido por los índices filtrados (UX_Huesped_Correo, UX_Huesped_Telefono): sqlcmd usa QUOTED_IDENTIFIER OFF por defecto
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+GO
+
 /* Asegura las credenciales de una base que ya tenía usuarios con contraseña en texto plano (fases anteriores).
    Uso:  sqlcmd ... -d ReservasHotelDB -i asegurar_credenciales.sql
    1) Muestra qué cuentas tienen la contraseña SIN cifrar.

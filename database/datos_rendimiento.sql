@@ -1,3 +1,8 @@
+-- Requerido por los índices filtrados (UX_Huesped_Correo, UX_Huesped_Telefono): sqlcmd usa QUOTED_IDENTIFIER OFF por defecto
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+GO
+
 /*
   DATOS DE REFERENCIA PARA LA PRUEBA DE RENDIMIENTO (RNF 05)
   Crea 100 habitaciones (P-001 ... P-100) y 10 000 reservas FINALIZADAS en el pasado (año 2023),

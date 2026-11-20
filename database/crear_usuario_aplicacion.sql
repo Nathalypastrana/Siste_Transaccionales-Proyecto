@@ -1,3 +1,8 @@
+-- Requerido por los índices filtrados (UX_Huesped_Correo, UX_Huesped_Telefono): sqlcmd usa QUOTED_IDENTIFIER OFF por defecto
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+GO
+
 /* Usuario de base de datos EXCLUSIVO de la aplicación, con los permisos mínimos (solo leer y escribir datos).
    La aplicación no necesita ser 'sa': el esquema lo crea schema.sql y Hibernate no modifica tablas (ddl-auto=none).
    Uso (con el login administrador 'sa', solo una vez):

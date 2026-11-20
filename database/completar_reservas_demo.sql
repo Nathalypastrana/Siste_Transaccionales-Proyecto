@@ -1,3 +1,8 @@
+-- Requerido por los índices filtrados (UX_Huesped_Correo, UX_Huesped_Telefono): sqlcmd usa QUOTED_IDENTIFIER OFF por defecto
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+GO
+
 /* COMPLETA la carga de datos_demostracion.sql: solo reservas, comprobantes y estado de habitaciones.
    Úsalo una sola vez si la primera ejecución falló en la sección 5 (error "Incorrect syntax near '20'").
    Idempotente: si las reservas de demostración ya existen, no hace nada.

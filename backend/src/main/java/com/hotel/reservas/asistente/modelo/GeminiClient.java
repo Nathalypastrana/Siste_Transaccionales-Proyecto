@@ -175,18 +175,40 @@ public class GeminiClient implements ModeloLenguaje {
         return e;
     }
 
+    /** Errores pasajeros de Google (límite por minuto, sobrecarga): se reintenta antes de rendirse. */
+    private static final java.util.Set<Integer> REINTENTABLES = java.util.Set.of(429, 500, 503);
+    private static final long[] ESPERAS_MS = {1500, 3000};
+
     private JsonNode llamar(ObjectNode cuerpo) {
+        for (int intento = 0; ; intento++) {
+            try {
+                return http.post()
+                        .uri("/models/{modelo}:generateContent", modelo)
+                        .header("content-type", "application/json")
+                        .body(cuerpo)
+                        .retrieve()
+                        .body(JsonNode.class);
+            } catch (org.springframework.web.client.RestClientResponseException e) {
+                int codigo = e.getStatusCode().value();
+                if (REINTENTABLES.contains(codigo) && intento < ESPERAS_MS.length) {
+                    log.warn("Gemini respondió HTTP {} (intento {}); se reintenta en {} ms",
+                            codigo, intento + 1, ESPERAS_MS[intento]);
+                    esperar(ESPERAS_MS[intento]);
+                    continue;
+                }
+                // Muestra la respuesta de Google (sin la clave) para poder diagnosticar
+                throw new IllegalStateException("Gemini respondió HTTP " + codigo
+                        + " con el modelo '" + modelo + "': " + e.getResponseBodyAsString(), e);
+            }
+        }
+    }
+
+    private static void esperar(long ms) {
         try {
-            return http.post()
-                    .uri("/models/{modelo}:generateContent", modelo)
-                    .header("content-type", "application/json")
-                    .body(cuerpo)
-                    .retrieve()
-                    .body(JsonNode.class);
-        } catch (org.springframework.web.client.RestClientResponseException e) {
-            // Muestra la respuesta de Google (sin la clave) para poder diagnosticar
-            throw new IllegalStateException("Gemini respondió HTTP " + e.getStatusCode().value()
-                    + " con el modelo '" + modelo + "': " + e.getResponseBodyAsString(), e);
+            Thread.sleep(ms);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Espera interrumpida al reintentar Gemini", ie);
         }
     }
 

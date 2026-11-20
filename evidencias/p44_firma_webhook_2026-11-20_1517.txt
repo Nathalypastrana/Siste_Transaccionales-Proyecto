@@ -1,0 +1,15 @@
+P44 - Firma de los webhooks de WhatsApp · 2026-11-20 15:17 · commit 1f6e9d3
+API: http://localhost:8080
+
+Twilio (/api/whatsapp/twilio)
+OK  1. Mensaje sin firma                                    HTTP 403 (esperado 403)  Firma inválida 
+OK  2. Mensaje con firma falsa                              HTTP 403 (esperado 403)  Firma inválida 
+OK  3. Firma válida pero cuerpo alterado (Body cambiado)   HTTP 403 (esperado 403)  Firma inválida 
+OK  4. Mensaje firmado con el Auth Token                    HTTP 200 (esperado 200)  <?xml version="1.0" encoding="UTF-8"?><Response><Message>Hola, soy el asistente virtual de reservas del hotel 
+
+Meta (/api/whatsapp/webhook)
+OK  5. Verificación con token falso                        HTTP 403 (esperado 403)  Verificación rechazada 
+OK  6. Evento POST sin firma X-Hub-Signature-256            HTTP 403 (esperado 403)  Firma inválida 
+
+En el log del backend deben aparecer las líneas 'Webhook de Twilio rechazado: firma ausente o inválida.'
+y 'Webhook de WhatsApp rechazado: firma ausente o inválida.'

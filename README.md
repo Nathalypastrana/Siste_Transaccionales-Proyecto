@@ -226,7 +226,7 @@ Guía completa: [`docs/seguridad-credenciales.md`](docs/seguridad-credenciales.m
 
 ## Pruebas y evidencias
 
-- [`docs/plan-pruebas.md`](docs/plan-pruebas.md) (38 casos), [`docs/informe-pruebas.md`](docs/informe-pruebas.md) y
+- [`docs/plan-pruebas.md`](docs/plan-pruebas.md) (45 casos), [`docs/informe-pruebas.md`](docs/informe-pruebas.md) y
   [`docs/evidencia-persistencia.md`](docs/evidencia-persistencia.md) (interfaz → base de datos).
 - `./pruebas/evidencia.sh <n.º de reserva>`: consulta la BD y guarda el resultado en `evidencias/`.
 - `./pruebas/evidencia_e2e.sh <idHuesped> <idHabitacion>`: crear → modificar → cancelar, consultando la BD en cada paso.
