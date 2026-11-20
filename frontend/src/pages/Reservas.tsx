@@ -5,6 +5,8 @@ import ComprobanteModal from '../components/Comprobante'
 import Confirmar from '../components/Confirmar'
 import { Cargando, ErrorCarga, Insignia } from '../components/Estado'
 import { useToast } from '../components/Toast'
+import { Paginacion, usePaginacion } from '../components/Paginacion'
+import { ETIQUETA_ESTADO } from '../types'
 import type { EstadoReserva, Habitacion, Reserva } from '../types'
 import { fechaCorta, hoy, moneda } from '../utils'
 
@@ -137,6 +139,7 @@ export default function Reservas() {
       r.habitacionNumero.toLowerCase().includes(q) ||
       String(r.id) === q,
   )
+  const pag = usePaginacion(visibles)
 
   return (
     <>
@@ -159,7 +162,7 @@ export default function Reservas() {
             Estado
             <select value={estado} onChange={(e) => setEstado(e.target.value as EstadoReserva | '')}>
               {ESTADOS.map((e) => (
-                <option key={e} value={e}>{e === '' ? 'Todos' : e}</option>
+                <option key={e} value={e}>{e === '' ? 'Todos' : ETIQUETA_ESTADO[e]}</option>
               ))}
             </select>
           </label>
@@ -183,6 +186,7 @@ export default function Reservas() {
         {!cargando && datos && !error && (visibles.length === 0 ? (
           <p className="vacio">No hay reservas para los filtros indicados.</p>
         ) : (
+          <>
           <table>
             <thead>
               <tr>
@@ -190,7 +194,7 @@ export default function Reservas() {
               </tr>
             </thead>
             <tbody>
-              {visibles.map((r) => {
+              {pag.visibles.map((r) => {
                 const activa = r.estado === 'CONFIRMADA' || r.estado === 'PENDIENTE'
                 const futura = r.fechaEntrada > hoy()
                 return (
@@ -218,6 +222,8 @@ export default function Reservas() {
               })}
             </tbody>
           </table>
+          <Paginacion p={pag} nombre="reservas" />
+          </>
         ))}
         {datos && datos.length >= 200 && (
           <p className="ayuda">Se muestran las 200 reservas más recientes; usa los filtros para acotar.</p>

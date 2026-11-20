@@ -152,6 +152,7 @@ export const api = {
 
   huespedes: () => request<Huesped[]>('/api/huespedes'),
   crearHuesped: (data: HuespedForm) => request<Huesped>('/api/huespedes', json('POST', data)),
+  actualizarHuesped: (id: number, data: HuespedForm) => request<Huesped>(`/api/huespedes/${id}`, json('PUT', data)),
 
   simularAsistente: (telefono: string, mensaje: string) =>
     request<{ respuesta: string }>('/api/asistente/simular', json('POST', { telefono, mensaje })),

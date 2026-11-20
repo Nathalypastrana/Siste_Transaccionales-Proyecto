@@ -1,7 +1,8 @@
+import { ETIQUETA_ESTADO } from '../types'
 import type { EstadoHabitacion, EstadoReserva } from '../types'
 
 export function Insignia({ estado }: { estado: EstadoHabitacion | EstadoReserva }) {
-  return <span className={`insignia insignia-${estado.toLowerCase()}`}>{estado}</span>
+  return <span className={`insignia insignia-${estado.toLowerCase()}`}>{ETIQUETA_ESTADO[estado] ?? estado}</span>
 }
 
 export function Cargando({ texto = 'Cargando…' }: { texto?: string }) {

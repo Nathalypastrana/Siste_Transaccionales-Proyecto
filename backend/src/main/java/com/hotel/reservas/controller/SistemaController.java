@@ -44,6 +44,7 @@ public class SistemaController {
     private final NotificacionService notificaciones;
     private final AvisosProgramadosService avisos;
     private final AuditoriaService auditoria;
+    private final com.hotel.reservas.whatsapp.WhatsAppClient whatsApp;
 
     @Value("${asistente.proveedor:claude}")
     private String proveedor;
@@ -51,10 +52,6 @@ public class SistemaController {
     private boolean simulador;
     @Value("${asistente.version-aviso:1.0}")
     private String versionAviso;
-    @Value("${whatsapp.access-token:}")
-    private String whatsappToken;
-    @Value("${whatsapp.phone-number-id:}")
-    private String whatsappNumero;
     @Value("${seguridad.jwt-secreto:}")
     private String jwtSecreto;
 
@@ -99,7 +96,7 @@ public class SistemaController {
                 proveedor,
                 modeloListo,
                 simulador,
-                !whatsappToken.isBlank() && !whatsappNumero.isBlank(),
+                whatsApp.configurado(),
                 versionAviso,
                 autorizaciones.size() - revocadas,
                 revocadas,

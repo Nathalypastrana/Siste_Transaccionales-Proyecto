@@ -187,3 +187,19 @@ export interface AlertaTarifa {
   diasRestantes: number
   sinTarifaHoy: boolean
 }
+
+/** Nombres legibles de los estados de reserva y de habitación (en la BD y la API siguen en MAYÚSCULAS). */
+export const ETIQUETA_ESTADO: Record<EstadoHabitacion | EstadoReserva, string> = {
+  DISPONIBLE: 'Disponible',
+  RESERVADA: 'Reservada',
+  OCUPADA: 'Ocupada',
+  MANTENIMIENTO: 'En mantenimiento',
+  PENDIENTE: 'Pendiente',
+  CONFIRMADA: 'Confirmada',
+  CANCELADA: 'Cancelada',
+  FINALIZADA: 'Finalizada',
+}
+
+export function etiquetaEstado(estado: string): string {
+  return ETIQUETA_ESTADO[estado as EstadoHabitacion | EstadoReserva] ?? estado
+}

@@ -33,3 +33,14 @@ export function sumarDias(iso: string, dias: number): string {
   const dia = String(d.getDate()).padStart(2, '0')
   return `${d.getFullYear()}-${mes}-${dia}`
 }
+
+/** Texto en minúsculas, sin tildes y sin espacios repetidos: sirve para buscar y comparar nombres. */
+export function normalizar(texto: string | null | undefined): string {
+  return (texto ?? '').normalize('NFD').replace(/\p{M}/gu, '').trim().replace(/\s+/g, ' ').toLowerCase()
+}
+
+/** Últimos 10 dígitos de un teléfono (ignora indicativo, espacios y guiones). */
+export function ultimos10(telefono: string | null | undefined): string {
+  const d = (telefono ?? '').replace(/\D/g, '')
+  return d.length > 10 ? d.slice(-10) : d
+}

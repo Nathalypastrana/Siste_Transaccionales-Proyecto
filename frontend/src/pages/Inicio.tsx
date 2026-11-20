@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
 import { Cargando, ErrorCarga } from '../components/Estado'
 import { useCarga } from '../hooks'
 import { fechaCorta, hoy, moneda } from '../utils'
+import { etiquetaEstado } from '../types'
 import { useAuth } from '../auth'
 import Sistema from './Sistema'
 import AlertaTarifas from '../components/AlertaTarifas'
@@ -134,7 +136,7 @@ function PanelHotel() {
         <table>
           <thead><tr><th>Estado</th><th>Reservas</th></tr></thead>
           <tbody>
-            {Object.entries(reporte.reservasPorEstado).map(([e, n]) => (<tr key={e}><td>{e}</td><td>{n}</td></tr>))}
+            {Object.entries(reporte.reservasPorEstado).map(([e, n]) => (<tr key={e}><td>{etiquetaEstado(e)}</td><td>{n}</td></tr>))}
           </tbody>
         </table>
       </section>
@@ -142,10 +144,37 @@ function PanelHotel() {
   )
 }
 
+type VistaGeneral = 'sistema' | 'hotel' | 'recepcion'
+const VISTAS: Array<{ id: VistaGeneral; texto: string }> = [
+  { id: 'sistema', texto: 'Estado del sistema' },
+  { id: 'hotel', texto: 'Panel del hotel' },
+  { id: 'recepcion', texto: 'Panel de recepción' },
+]
+
+/** El administrador general ve los tres paneles: el suyo, el del administrador del hotel y el de recepción. */
+function PanelGeneral() {
+  const [vista, setVista] = useState<VistaGeneral>('sistema')
+  return (
+    <>
+      <div className="pestanas" role="tablist">
+        {VISTAS.map((v) => (
+          <button key={v.id} role="tab" aria-selected={vista === v.id}
+            className={vista === v.id ? 'pestana activa' : 'pestana'} onClick={() => setVista(v.id)}>
+            {v.texto}
+          </button>
+        ))}
+      </div>
+      {vista === 'sistema' && <Sistema />}
+      {vista === 'hotel' && <PanelHotel />}
+      {vista === 'recepcion' && <PanelRecepcion />}
+    </>
+  )
+}
+
 /** La pantalla de inicio cambia según el rol de quien inicia sesión. */
 export default function Inicio() {
   const { usuario } = useAuth()
-  if (usuario?.rol === 'ADMIN_GENERAL') return <Sistema />
+  if (usuario?.rol === 'ADMIN_GENERAL') return <PanelGeneral />
   if (usuario?.rol === 'ADMINISTRADOR') return <PanelHotel />
   return <PanelRecepcion />
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, ApiError } from '../api'
 import { Alerta, Cargando, ErrorCarga } from '../components/Estado'
+import BuscadorHuesped from '../components/BuscadorHuesped'
 import { useCarga } from '../hooks'
 import type { Habitacion, Reserva } from '../types'
 import { fechaCorta, hoy, moneda, noches } from '../utils'
@@ -120,30 +121,24 @@ export default function NuevaReserva() {
       {errorGlobal && <Alerta tipo="error">{errorGlobal}</Alerta>}
 
       <form onSubmit={enviar} noValidate className="panel formulario">
-        <label>
-          Huésped *
-          <select
-            value={huespedId}
-            onChange={(e) => {
-              setHuespedId(e.target.value)
+        <div className="campo-huesped">
+          <span className="etiqueta">Huésped *</span>
+          <BuscadorHuesped
+            huespedes={huespedes}
+            valor={huespedId}
+            invalido={!!errores.huespedId}
+            onCambiar={(id) => {
+              setHuespedId(id)
               setErrores((x) => ({ ...x, huespedId: undefined }))
             }}
-            className={errores.huespedId ? 'invalido' : ''}
-          >
-            <option value="">— Selecciona —</option>
-            {huespedes.map((h) => (
-              <option key={h.id} value={h.id}>
-                {h.nombres} {h.apellidos} ({h.tipoDocumento} {h.numeroDocumento})
-              </option>
-            ))}
-          </select>
+          />
           {errores.huespedId && <span className="error-campo">{errores.huespedId}</span>}
           {huespedes.length === 0 && (
             <span className="ayuda">
               No hay huéspedes. <Link to="/huespedes">Registra uno primero</Link>.
             </span>
           )}
-        </label>
+        </div>
 
         <label>
           Fecha de entrada *

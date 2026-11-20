@@ -1161,3 +1161,30 @@ tbody tr:hover {
   font-size: 13px;
   color: #82936A;
 }
+/* Fila que se está editando */
+tr.seleccionada td { background: var(--exito-fondo); }
+
+/* Buscador de huésped (Nueva reserva) */
+.combo { position: relative; }
+.combo input { width: 100%; }
+.combo-lista { position: absolute; z-index: 20; top: calc(100% + 4px); left: 0; right: 0; margin: 0; padding: 4px;
+  list-style: none; background: var(--superficie); border: 1px solid var(--borde); border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(73, 56, 44, 0.12); max-height: 320px; overflow-y: auto; font-weight: 400; }
+.combo-lista li { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+.combo-lista li.activo { background: var(--exito-fondo); }
+.combo-lista li.combo-vacio { cursor: default; color: var(--texto-suave); font-size: 13px; }
+.huesped-elegido { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px;
+  border: 1px solid var(--borde); border-radius: 10px; background: var(--superficie); font-weight: 400; }
+.huesped-elegido.invalido { border-color: var(--error); }
+.campo-huesped { display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.campo-huesped .etiqueta { font-weight: 600; }
+
+/* Auditoría: página a todo lo ancho, columnas compactas y paginación */
+.contenido:has(.pagina-ancha) { max-width: none; }
+.tabla-auditoria td.sin-salto { white-space: nowrap; }
+.tabla-auditoria td.detalle { min-width: 320px; overflow-wrap: anywhere; }
+.paginacion { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+.paginacion label { display: flex; align-items: center; gap: 6px; }
+.paginacion-botones { display: flex; align-items: center; gap: 8px; }
+.paginacion-botones button { padding: 6px 12px; }
+.paginacion-botones button:disabled { opacity: 0.45; cursor: default; }

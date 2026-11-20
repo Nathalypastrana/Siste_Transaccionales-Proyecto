@@ -27,4 +27,9 @@ public class HuespedController {
     public HuespedResponse crear(@Valid @RequestBody HuespedRequest request) {
         return huespedService.crear(request);
     }
+
+    @PutMapping("/{id}")
+    public HuespedResponse actualizar(@PathVariable Integer id, @Valid @RequestBody HuespedRequest request) {
+        return huespedService.actualizar(id, request);
+    }
 }

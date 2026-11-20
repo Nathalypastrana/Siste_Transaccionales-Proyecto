@@ -21,7 +21,8 @@ import type { Rol } from './types'
 import Reservas from './pages/Reservas'
 import LogoHotel from './components/LogoHotel'
 
-const RECEP: Rol[] = ['RECEPCIONISTA', 'ADMINISTRADOR']
+// El administrador general también puede hacer todo lo de recepción (reservas, huéspedes, consultor).
+const RECEP: Rol[] = ['RECEPCIONISTA', 'ADMINISTRADOR', 'ADMIN_GENERAL']
 const ADMINS: Rol[] = ['ADMINISTRADOR', 'ADMIN_GENERAL']
 const TODOS: Rol[] = ['RECEPCIONISTA', 'ADMINISTRADOR', 'ADMIN_GENERAL']
 

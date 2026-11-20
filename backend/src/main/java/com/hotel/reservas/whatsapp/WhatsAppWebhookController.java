@@ -101,6 +101,20 @@ public class WhatsAppWebhookController {
             nombres.put(contacto.path("wa_id").asText(), contacto.path("profile").path("name").asText(""));
         }
 
+        // Estados de entrega de los mensajes enviados (sent, delivered, read, failed): Meta solo los informa por aquí.
+        for (JsonNode estado : valor.path("statuses")) {
+            String destino = com.hotel.reservas.util.Telefonos.enmascarar(estado.path("recipient_id").asText());
+            String st = estado.path("status").asText();
+            if ("failed".equals(st)) {
+                for (JsonNode err : estado.path("errors")) {
+                    log.warn("WhatsApp: mensaje a {} NO entregado: ({}) {} - {}", destino, err.path("code").asText(),
+                            err.path("title").asText(), err.path("error_data").path("details").asText(""));
+                }
+            } else {
+                log.info("WhatsApp: mensaje a {} -> {}", destino, st);
+            }
+        }
+
         for (JsonNode mensaje : valor.path("messages")) {
             String id = mensaje.path("id").asText();
             String de = mensaje.path("from").asText();

@@ -44,7 +44,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/olvide", "/api/auth/restablecer").permitAll()
-                        .requestMatchers("/api/whatsapp/webhook").permitAll()
+                        .requestMatchers("/api/whatsapp/webhook", "/api/whatsapp/twilio", "/api/whatsapp/twilio/estado").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/publico/**").permitAll()
                         .requestMatchers("/api/salud", "/error").permitAll()
                         .anyRequest().authenticated())

@@ -5,9 +5,10 @@ import { useToast } from '../components/Toast'
 import { useCarga } from '../hooks'
 import { useAuth } from '../auth'
 import AlertaTarifas from '../components/AlertaTarifas'
+import { Paginacion, usePaginacion } from '../components/Paginacion'
 import { ETIQUETA_ROL } from '../types'
 import type { EstadoHabitacion, Rol } from '../types'
-import { fechaCorta, moneda } from '../utils'
+import { fechaCorta, moneda, normalizar } from '../utils'
 
 type Pestana = 'tipos' | 'habitaciones' | 'tarifas' | 'usuarios'
 
@@ -26,6 +27,7 @@ function mensajeError(e: unknown): string {
 function Tipos() {
   const toast = useToast()
   const { datos, error, cargando, recargar } = useCarga(api.tipos)
+  const pag = usePaginacion(datos ?? [])
   const [editando, setEditando] = useState<number | null>(null)
   const [nombre, setNombre] = useState('')
   const [descripcion, setDescripcion] = useState('')
@@ -66,10 +68,11 @@ function Tipos() {
         {cargando && <Cargando />}
         {!cargando && (error || !datos) && <ErrorCarga mensaje={error} onReintentar={recargar} />}
         {!cargando && datos && (
+          <>
           <table>
             <thead><tr><th>Nombre</th><th>Capacidad</th><th>Descripción</th><th></th></tr></thead>
             <tbody>
-              {datos.map((t) => (
+              {pag.visibles.map((t) => (
                 <tr key={t.id}>
                   <td>{t.nombre}</td><td>{t.capacidad}</td><td>{t.descripcion ?? '—'}</td>
                   <td className="fila-acciones">
@@ -81,6 +84,8 @@ function Tipos() {
               ))}
             </tbody>
           </table>
+          <Paginacion p={pag} nombre="tipos" />
+          </>
         )}
       </section>
     </>
@@ -92,6 +97,7 @@ function HabitacionesAdmin({ soloEstado, onCambiarTarifa }: { soloEstado: boolea
   const toast = useToast()
   const tipos = useCarga(api.tipos)
   const { datos, error, cargando, recargar } = useCarga(api.habitaciones)
+  const pag = usePaginacion(datos ?? [])
   const [editando, setEditando] = useState<number | null>(null)
   const [numero, setNumero] = useState('')
   const [piso, setPiso] = useState('1')
@@ -148,11 +154,11 @@ function HabitacionesAdmin({ soloEstado, onCambiarTarifa }: { soloEstado: boolea
         {editando && (
           <label>Estado
             <select value={estado} onChange={(e) => setEstado(e.target.value as EstadoHabitacion)}>
-              <option value="DISPONIBLE">DISPONIBLE</option>
-              <option value="OCUPADA">OCUPADA</option>
-              <option value="MANTENIMIENTO">MANTENIMIENTO</option>
+              <option value="DISPONIBLE">Disponible</option>
+              <option value="OCUPADA">Ocupada</option>
+              <option value="MANTENIMIENTO">En mantenimiento</option>
             </select>
-            <span className="ayuda">RESERVADA se calcula sola según las reservas vigentes.</span>
+            <span className="ayuda">"Reservada" se calcula sola según las reservas vigentes.</span>
           </label>
         )}
         {err && <div className="ancho-completo"><Alerta tipo="error">{err}</Alerta></div>}
@@ -166,18 +172,19 @@ function HabitacionesAdmin({ soloEstado, onCambiarTarifa }: { soloEstado: boolea
         {cargando && <Cargando />}
         {!cargando && (error || !datos) && <ErrorCarga mensaje={error} onReintentar={recargar} />}
         {!cargando && datos && (
+          <>
           <table>
             <thead><tr><th>Número</th><th>Tipo</th><th>Piso</th><th>Capacidad</th><th>Tarifa/noche</th><th>Estado</th><th></th></tr></thead>
             <tbody>
-              {datos.map((h) => (
+              {pag.visibles.map((h) => (
                 <tr key={h.id}>
                   <td>{h.numero}</td><td>{h.tipo}</td><td>{h.piso}</td><td>{h.capacidad}</td><td>{moneda(h.precioNoche)}</td>
                   <td>
                     <select value={h.estado} onChange={(e) => cambiarEstado(h.id, e.target.value)} aria-label={`Estado de la habitación ${h.numero}`}>
-                      <option value="DISPONIBLE">DISPONIBLE</option>
-                      <option value="OCUPADA">OCUPADA</option>
-                      <option value="MANTENIMIENTO">MANTENIMIENTO</option>
-                      {h.estado === 'RESERVADA' && <option value="RESERVADA" disabled>RESERVADA</option>}
+                      <option value="DISPONIBLE">Disponible</option>
+                      <option value="OCUPADA">Ocupada</option>
+                      <option value="MANTENIMIENTO">En mantenimiento</option>
+                      {h.estado === 'RESERVADA' && <option value="RESERVADA" disabled>Reservada</option>}
                     </select>
                   </td>
                   <td className="fila-acciones">
@@ -196,6 +203,8 @@ function HabitacionesAdmin({ soloEstado, onCambiarTarifa }: { soloEstado: boolea
               ))}
             </tbody>
           </table>
+          <Paginacion p={pag} nombre="habitaciones" />
+          </>
         )}
       </section>
     </>
@@ -207,6 +216,7 @@ function Tarifas({ tipoInicial }: { tipoInicial: string }) {
   const toast = useToast()
   const tipos = useCarga(api.tipos)
   const { datos, error, cargando, recargar } = useCarga(api.tarifas)
+  const pag = usePaginacion(datos ?? [])
   const [editando, setEditando] = useState<number | null>(null)
   const [tipoId, setTipoId] = useState(tipoInicial)
   const [valor, setValor] = useState('')
@@ -266,10 +276,11 @@ function Tarifas({ tipoInicial }: { tipoInicial: string }) {
         {cargando && <Cargando />}
         {!cargando && (error || !datos) && <ErrorCarga mensaje={error} onReintentar={recargar} />}
         {!cargando && datos && (
+          <>
           <table>
             <thead><tr><th>Tipo</th><th>Valor/noche</th><th>Desde</th><th>Hasta</th><th>Estado</th><th></th></tr></thead>
             <tbody>
-              {datos.map((t) => (
+              {pag.visibles.map((t) => (
                 <tr key={t.id}>
                   <td>{t.tipo}</td><td>{moneda(t.valor)}</td><td>{fechaCorta(t.fechaInicio)}</td><td>{fechaCorta(t.fechaFin)}</td>
                   <td>{t.activa ? 'Activa' : 'Inactiva'}</td>
@@ -286,6 +297,8 @@ function Tarifas({ tipoInicial }: { tipoInicial: string }) {
               ))}
             </tbody>
           </table>
+          <Paginacion p={pag} nombre="tarifas" />
+          </>
         )}
       </section>
     </>
@@ -304,6 +317,14 @@ function Usuarios() {
   const [rol, setRol] = useState<Rol>('RECEPCIONISTA')
   const [activo, setActivo] = useState(true)
   const [err, setErr] = useState<string | null>(null)
+  const [buscar, setBuscar] = useState('')
+  const [filtroRol, setFiltroRol] = useState<Rol | 'TODOS'>('TODOS')
+  const [filtroEstado, setFiltroEstado] = useState<'TODOS' | 'ACTIVOS' | 'INACTIVOS'>('TODOS')
+  const usuariosVisibles = (datos ?? []).filter((u) =>
+    (filtroRol === 'TODOS' || u.rol === filtroRol) &&
+    (filtroEstado === 'TODOS' || (filtroEstado === 'ACTIVOS') === u.activo) &&
+    (!buscar || normalizar(`${u.nombre} ${u.correo}`).includes(normalizar(buscar))))
+  const pag = usePaginacion(usuariosVisibles)
 
   function limpiar() {
     setEditando(null); setNombre(''); setCorreo(''); setPassword(''); setRol('RECEPCIONISTA'); setActivo(true); setErr(null)
@@ -353,10 +374,31 @@ function Usuarios() {
         {cargando && <Cargando />}
         {!cargando && (error || !datos) && <ErrorCarga mensaje={error} onReintentar={recargar} />}
         {!cargando && datos && (
+          <>
+          <div className="filtros">
+            <input className="buscador" type="search" placeholder="Buscar por nombre o correo"
+              value={buscar} onChange={(e) => setBuscar(e.target.value)} />
+            <label>Rol
+              <select value={filtroRol} onChange={(e) => setFiltroRol(e.target.value as Rol | 'TODOS')}>
+                <option value="TODOS">Todos</option>
+                <option value="RECEPCIONISTA">{ETIQUETA_ROL.RECEPCIONISTA}</option>
+                <option value="ADMINISTRADOR">{ETIQUETA_ROL.ADMINISTRADOR}</option>
+                <option value="ADMIN_GENERAL">{ETIQUETA_ROL.ADMIN_GENERAL}</option>
+              </select>
+            </label>
+            <label>Estado
+              <select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value as typeof filtroEstado)}>
+                <option value="TODOS">Todos</option>
+                <option value="ACTIVOS">Activos</option>
+                <option value="INACTIVOS">Inactivos</option>
+              </select>
+            </label>
+          </div>
+          <p className="ayuda">{usuariosVisibles.length} de {datos.length} usuarios coinciden con los filtros.</p>
           <table>
             <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
             <tbody>
-              {datos.map((u) => (
+              {pag.visibles.map((u) => (
                 <tr key={u.id}>
                   <td>{u.nombre}</td><td>{u.correo}</td><td>{ETIQUETA_ROL[u.rol]}</td><td>{u.activo ? 'Activo' : 'Inactivo'}</td>
                   <td className="fila-acciones">
@@ -368,6 +410,8 @@ function Usuarios() {
               ))}
             </tbody>
           </table>
+          <Paginacion p={pag} nombre="usuarios" />
+          </>
         )}
       </section>
     </>

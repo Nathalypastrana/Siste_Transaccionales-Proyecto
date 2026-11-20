@@ -88,6 +88,18 @@ END
 
 GO
 
+/* Unicidad de huéspedes: mismo documento, nombre completo, correo o teléfono no se repiten
+   (ver también database/unicidad_huespedes.sql para bases ya existentes). */
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_Huesped_NumeroDocumento')
+    CREATE UNIQUE INDEX UX_Huesped_NumeroDocumento ON Huesped(numeroDocumento);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_Huesped_NombreCompleto')
+    CREATE UNIQUE INDEX UX_Huesped_NombreCompleto ON Huesped(nombres, apellidos);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_Huesped_Correo')
+    CREATE UNIQUE INDEX UX_Huesped_Correo ON Huesped(correo) WHERE correo IS NOT NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_Huesped_Telefono')
+    CREATE UNIQUE INDEX UX_Huesped_Telefono ON Huesped(telefono) WHERE telefono IS NOT NULL;
+GO
+
 /* TABLA: Tarifa */
 IF OBJECT_ID('Tarifa', 'U') IS NULL
 BEGIN

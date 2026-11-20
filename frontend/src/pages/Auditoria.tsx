@@ -1,7 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../api'
 import { Cargando, ErrorCarga } from '../components/Estado'
+import { Paginacion, usePaginacion } from '../components/Paginacion'
 import type { RegistroAuditoria } from '../types'
+
+/** Registros que se traen del servidor (el máximo que permite la API); se muestran por páginas. */
+const LIMITE = 1000
+
+function fecha(iso: string): string {
+  return new Date(iso).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })
+}
 
 const ACCIONES = [
   'LOGIN_OK', 'LOGIN_FALLIDO', 'LOGIN_BLOQUEADO', 'SESION_RENOVADA',
@@ -27,11 +35,13 @@ export default function Auditoria() {
     setCargando(true)
     setError(null)
     api
-      .auditoria({ desde, hasta, accion, texto: texto.trim() })
+      .auditoria({ desde, hasta, accion, texto: texto.trim(), limite: LIMITE })
       .then(setDatos)
       .catch((e: Error) => setError(e.message))
       .finally(() => setCargando(false))
   }, [desde, hasta, accion, texto])
+
+  const pag = usePaginacion(datos ?? [], 5)
 
   useEffect(() => {
     const id = window.setTimeout(cargar, 300)
@@ -44,7 +54,7 @@ export default function Auditoria() {
         <h1>Auditoría</h1>
         <button className="boton-secundario" onClick={cargar}>Actualizar</button>
       </header>
-      <section className="panel">
+      <section className="panel pagina-ancha">
         <div className="filtros">
           <input className="buscador" placeholder="Buscar por correo, detalle o número" value={texto} onChange={(e) => setTexto(e.target.value)} />
           <label>Acción
@@ -61,25 +71,28 @@ export default function Auditoria() {
         {!cargando && datos && !error && (datos.length === 0 ? (
           <p className="vacio">No hay registros para los filtros indicados.</p>
         ) : (
+          <>
           <div className="tabla-ancha">
-            <table>
+            <table className="tabla-auditoria">
               <thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Elemento</th><th>Detalle</th><th>IP</th></tr></thead>
               <tbody>
-                {datos.map((r) => (
+                {pag.visibles.map((r) => (
                   <tr key={r.id}>
-                    <td>{new Date(r.fecha).toLocaleString('es-CO')}</td>
+                    <td className="sin-salto">{fecha(r.fecha)}</td>
                     <td>{r.correo ?? '—'}{r.rol ? <small className="ayuda"> ({r.rol})</small> : null}</td>
-                    <td>{r.accion}</td>
-                    <td>{r.entidad ? `${r.entidad}${r.entidadId ? ' #' + r.entidadId : ''}` : '—'}</td>
-                    <td>{r.detalle ?? ''}</td>
-                    <td>{r.ip ?? ''}</td>
+                    <td className="sin-salto">{r.accion}</td>
+                    <td className="sin-salto">{r.entidad ? `${r.entidad}${r.entidadId ? ' #' + r.entidadId : ''}` : '—'}</td>
+                    <td className="detalle">{r.detalle ?? ''}</td>
+                    <td className="sin-salto">{r.ip ?? ''}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          <Paginacion p={pag} nombre="registros" />
+          </>
         ))}
-        {datos && datos.length >= 200 && <p className="ayuda">Se muestran los 200 registros más recientes; usa los filtros para acotar.</p>}
+        {datos && datos.length >= LIMITE && <p className="ayuda">Se muestran los {LIMITE} registros más recientes; usa los filtros para acotar.</p>}
       </section>
     </>
   )

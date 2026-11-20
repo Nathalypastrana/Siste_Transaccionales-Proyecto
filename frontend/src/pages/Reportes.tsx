@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { api, ApiError } from '../api'
 import { Alerta, Cargando } from '../components/Estado'
 import { useCarga } from '../hooks'
+import { etiquetaEstado } from '../types'
 import type { ReporteOcupacion } from '../types'
 import { fechaCorta, sumarDias } from '../utils'
 
@@ -89,7 +90,7 @@ export default function Reportes() {
               <thead><tr><th>Estado</th><th>Reservas</th></tr></thead>
               <tbody>
                 {Object.entries(reporte.reservasPorEstado).map(([estado, n]) => (
-                  <tr key={estado}><td>{estado}</td><td>{n}</td></tr>
+                  <tr key={estado}><td>{etiquetaEstado(estado)}</td><td>{n}</td></tr>
                 ))}
               </tbody>
             </table>

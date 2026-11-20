@@ -56,6 +56,35 @@ El huésped debe tener el teléfono con indicativo o de 10 dígitos (se le antep
 Si quieres que el consultor reciba mensajes (webhook), faltan además `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET` y un túnel (ngrok) con la URL
 `https://<tu-túnel>/api/whatsapp/webhook`, suscrita al campo `messages`; no hace falta para las notificaciones.
 
+## WhatsApp con Twilio (alternativa sin verificación del negocio)
+
+Una cuenta de WhatsApp Business **nueva** en Meta puede quedar restringida hasta verificar el negocio (error `131031
+Business Account locked`: Meta acepta el envío pero no lo entrega). Para pruebas y demostración se puede usar el
+**Sandbox de WhatsApp de Twilio**, que no exige esa verificación. El resto del sistema no cambia: notificaciones,
+recordatorios, consultor y avisos a recepción usan `WhatsAppClient`, que envía por Meta o por Twilio según `WHATSAPP_PROVEEDOR`.
+
+| Variable | Valor |
+|---|---|
+| `WHATSAPP_PROVEEDOR` | `twilio` (por defecto `meta`) |
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` | Consola de Twilio → *Account Info* |
+| `TWILIO_WHATSAPP_FROM` | Número del Sandbox (`+14155238886`) |
+| `TWILIO_URL_PUBLICA` | URL pública del backend (ngrok), sin barra final |
+
+1. Crear cuenta en twilio.com → *Messaging → Try it out → Send a WhatsApp message* (activa el Sandbox).
+2. Desde cada celular que vaya a probar, enviar `join <código>` al número del Sandbox (abre la ventana de 24 h).
+3. `ngrok http 8080` y en el Sandbox, *When a message comes in*: `https://<tu-túnel>/api/whatsapp/twilio` (método POST).
+4. Definir las variables, `NOTIFICACIONES_CANALES=correo,whatsapp` y reiniciar el backend.
+
+Respuestas del consultor: se devuelven como **TwiML** en la misma petición del webhook (respuesta dentro de la conversación).
+Notificaciones con el **número de prueba de Twilio** (*Try WhatsApp*): ese número no acepta texto libre iniciado por la API
+(error `21654 ContentSid Required`); hay que usar una plantilla de contenido: poner su ContentSid en
+`WHATSAPP_PLANTILLA_RESERVA=HX...` (variables {{1}} nombre y {{2}} resumen).
+
+Seguridad: cada webhook se valida con la firma `X-Twilio-Signature` (HMAC-SHA1 con el Auth Token sobre la URL y los
+parámetros); sin firma válida responde 403. Los estados de entrega llegan a `/api/whatsapp/twilio/estado` y quedan en el log
+(`WhatsApp (Twilio): mensaje a ******1234 -> delivered`). Limitaciones del Sandbox: solo números que enviaron el `join`, sin
+plantillas propias (se envía texto libre) y la prueba gratuita incluye 100 mensajes. Para producción: registrar un número propio.
+
 ## Avisos programados (todos los días, hora de Bogotá)
 
 | Hora | Aviso | Destino |

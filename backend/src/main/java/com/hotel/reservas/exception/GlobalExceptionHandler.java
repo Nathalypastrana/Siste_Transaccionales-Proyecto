@@ -55,8 +55,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail integridad(DataIntegrityViolationException ex) {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
-                "La operación viola una restricción de la base de datos (dato duplicado o inválido).");
+        // Los índices únicos de Huesped se traducen a un mensaje claro (por si dos registros llegan al mismo tiempo).
+        String causa = String.valueOf(ex.getMostSpecificCause().getMessage());
+        String detalle;
+        if (causa.contains("UX_Huesped_NumeroDocumento") || causa.contains("UQ_Huesped_Documento")) {
+            detalle = "Ya existe otro huésped con el mismo número de documento.";
+        } else if (causa.contains("UX_Huesped_NombreCompleto")) {
+            detalle = "Ya existe otro huésped con los mismos nombres y apellidos.";
+        } else if (causa.contains("UX_Huesped_Correo")) {
+            detalle = "Ya existe otro huésped con el mismo correo.";
+        } else if (causa.contains("UX_Huesped_Telefono")) {
+            detalle = "Ya existe otro huésped con el mismo teléfono.";
+        } else {
+            detalle = "La operación viola una restricción de la base de datos (dato duplicado o inválido).";
+        }
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, detalle);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
