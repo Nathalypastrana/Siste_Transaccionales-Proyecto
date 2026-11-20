@@ -232,3 +232,5 @@ Guía completa: [`docs/seguridad-credenciales.md`](docs/seguridad-credenciales.m
 - `./pruebas/evidencia_e2e.sh <idHuesped> <idHabitacion>`: crear → modificar → cancelar, consultando la BD en cada paso.
 - `./pruebas/concurrencia.sh` y `python3 pruebas/rendimiento.py` (con `database/datos_rendimiento.sql`; apagar las
   notificaciones durante la prueba).
+
+- Guía de la entrega final (prototipo, pruebas e IA): [`docs/entrega-final.md`](docs/entrega-final.md).
